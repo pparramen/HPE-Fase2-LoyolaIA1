@@ -1,14 +1,50 @@
+import streamlit as st
 import pandas as pd
+import unicodedata
 
-# Cargar datos de rutas turísticas
-df_rutas = pd.read_csv('baseDatos/rutas_turisticas.csv')
+# --- Funciones auxiliares ---
+def normalizar_texto(texto):
+    return ''.join(
+        c for c in unicodedata.normalize('NFD', texto)
+        if unicodedata.category(c) != 'Mn'
+    ).lower()
 
-# Función principal del recomendador
-def recomendar_ruta(tipo_ruta_input, popularidad_input, dificultad_input, duracion_min, duracion_max):
-    rutas_filtradas = df_rutas[df_rutas['tipo_ruta'].str.lower() == tipo_ruta_input.lower()]
+# Cargar datos
+@st.cache_data
+def cargar_datos():
+    df = pd.read_csv('baseDatos/rutas_turisticas.csv')
+    df['tipo_ruta_normalizada'] = df['tipo_ruta'].apply(normalizar_texto)
+    return df
 
-    if rutas_filtradas.empty:
-        return "No hay rutas disponibles para ese tipo de ruta."
+df_rutas = cargar_datos()
+
+# --- Título ---
+st.title("🌍 Recomendador de Rutas Turísticas")
+st.write("¡Responde a nuestras preguntas para desubrir tu ruta ideal!")
+
+# --- Paso 1: Tipo de ruta ---
+tipos_opciones = ['Cultural', 'Aventura', 'Ecológica', 'Histórica', 'Gastronómica']
+tipo_ruta_input = st.radio("1. Elige el tipo de experiencia que quieres vivir:", tipos_opciones)
+
+# Normalizamos input
+tipo_ruta_norm = normalizar_texto(tipo_ruta_input)
+
+# --- Paso 2: Popularidad ---
+popularidad_input = st.radio("2. ¿Qué tipo de rutas prefieres? Las rutas populares suelen ser más atractivas y cuentan con mejores valoraciones, pero también "
+"están más concurridas. Por otro lado, las rutas poco populares no cuentan con tantas opiniones, pero son poco transitadas y pueden sorprenderte. "
+"¡Descubre una nueva ruta de ensueño que nadie más conoce! :", ['Popular', 'Poco popular']).lower()
+
+# --- Paso 3: Dificultad ---
+dificultad_input = st.radio("3. Nivel de dificultad de la ruta al que te quieres enfrentar:", ['Fácil', 'Estándar', 'Extremo']).lower()
+
+# --- Paso 4: Slider de duración ---
+st.write("4. Selecciona un rango estimado de duración para tu ruta (horas):")
+duracion_min, duracion_max = st.slider("Duración (horas):", 0.0, 15.0, (2.0, 5.0), 0.5)
+
+# --- Botón para recomendar ---
+if st.button("🔍 Recomiendame mi Ruta"):
+    # Filtrar por tipo_ruta
+    rutas_filtradas = df_rutas[df_rutas['tipo_ruta_normalizada'] == tipo_ruta_norm]
 
     recomendaciones = []
 
@@ -21,7 +57,7 @@ def recomendar_ruta(tipo_ruta_input, popularidad_input, dificultad_input, duraci
             puntuacion += 3
 
         distancia = ruta['longitud_km']
-        if dificultad_input == 'facil' and distancia < 4.0:
+        if dificultad_input == 'fácil' and distancia < 4.0:
             puntuacion += 2
         elif dificultad_input == 'estandar' and 4.0 <= distancia <= 6.5:
             puntuacion += 2
@@ -35,30 +71,12 @@ def recomendar_ruta(tipo_ruta_input, popularidad_input, dificultad_input, duraci
         recomendaciones.append((ruta, puntuacion))
 
     recomendaciones.sort(key=lambda x: x[1], reverse=True)
-
     mejor_ruta = recomendaciones[0][0]
-    puntuacion_maxima = recomendaciones[0][1]
+    puntuacion_max = recomendaciones[0][1]
 
-    return {
-        'Nombre': mejor_ruta['ruta_nombre'],
-        'Tipo_ruta': mejor_ruta['tipo_ruta'],
-        'Valoracion': mejor_ruta['popularidad'],
-        'Distancia_km': mejor_ruta['longitud_km'],
-        'Duracion_horas': mejor_ruta['duracion_hr'],
-        'Puntuacion': puntuacion_maxima
-    }
-
-# ------------------------------
-# Recoger inputs del usuario
-print("Bienvenido al recomendador de rutas.")
-tipo_ruta_input = input("Tipo de ruta (Cultural, Aventura, Ecologica, Historica, Gastronomica): ").strip()
-popularidad_input = input("¿Prefieres una ruta popular o poco popular?: ").strip().lower()
-dificultad_input = input("Nivel de dificultad (facil, estandar, extremo): ").strip().lower()
-duracion_min = float(input("Duración mínima en horas (ej: 2.0): ").strip())
-duracion_max = float(input("Duración máxima en horas (ej: 5.0): ").strip())
-
-# Llamar a la función
-resultado = recomendar_ruta(tipo_ruta_input, popularidad_input, dificultad_input, duracion_min, duracion_max)
-
-print("\nRuta recomendada:")
-print(resultado)
+    st.success(f"Ruta recomendada: {mejor_ruta['ruta_nombre']}")
+    st.markdown(f"**Tipo:** {mejor_ruta['tipo_ruta']}  ")
+    st.markdown(f"**Valoración:** {mejor_ruta['popularidad']}  ")
+    st.markdown(f"**Distancia:** {mejor_ruta['longitud_km']} km  ")
+    st.markdown(f"**Duración:** {mejor_ruta['duracion_hr']} horas  ")
+    #st.markdown(f"**Puntuación calculada:** {puntuacion_max} puntos")
