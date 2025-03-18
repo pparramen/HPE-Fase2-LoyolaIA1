@@ -1,3 +1,4 @@
+""
 import streamlit as st
 import pandas as pd
 import unicodedata
@@ -9,6 +10,11 @@ def normalizar_texto(texto):
         if unicodedata.category(c) != 'Mn'
     ).lower()
 
+def horas_a_hhmm(decimal_horas):
+    horas = int(decimal_horas)
+    minutos = int((decimal_horas - horas) * 60)
+    return f"{horas}:{minutos:02d}"
+
 # Cargar datos
 @st.cache_data
 def cargar_datos():
@@ -19,64 +25,148 @@ def cargar_datos():
 df_rutas = cargar_datos()
 
 # --- Título ---
-st.title("🌍 Recomendador de Rutas Turísticas")
-st.write("¡Responde a nuestras preguntas para desubrir tu ruta ideal!")
+st.title("Recomendador de Rutas Turísticas")
+st.markdown("##### Responde a nuestras preguntas para descubrir tu ruta ideal!")
 
-# --- Paso 1: Tipo de ruta ---
-tipos_opciones = ['Cultural', 'Aventura', 'Ecológica', 'Histórica', 'Gastronómica']
-tipo_ruta_input = st.radio("1. Elige el tipo de experiencia que quieres vivir:", tipos_opciones)
+# Inicializar estado
+if 'tipo_ruta_input' not in st.session_state:
+    st.session_state.tipo_ruta_input = ''
+if 'popularidad_input' not in st.session_state:
+    st.session_state.popularidad_input = ''
+if 'dificultad_input' not in st.session_state:
+    st.session_state.dificultad_input = ''
+if 'duracion' not in st.session_state:
+    st.session_state.duracion = (2.0, 5.0)
+if 'prioridad' not in st.session_state:
+    st.session_state.prioridad = []
 
-# Normalizamos input
-tipo_ruta_norm = normalizar_texto(tipo_ruta_input)
+# --- Pregunta 1: Tipo de ruta ---
+st.subheader("1. Elige el tipo de experiencia que quieres vivir:")
+col1, col2, col3, col4, col5 = st.columns(5)
+with col1:
+    if st.button("Cultural"):
+        st.session_state.tipo_ruta_input = "Cultural"
+with col2:
+    if st.button("Aventura"):
+        st.session_state.tipo_ruta_input = "Aventura"
+with col3:
+    if st.button("Ecológica"):
+        st.session_state.tipo_ruta_input = "Ecológica"
+with col4:
+    if st.button("Histórica"):
+        st.session_state.tipo_ruta_input = "Histórica"
+with col5:
+    if st.button("Gastronómica"):
+        st.session_state.tipo_ruta_input = "Gastronómica"
 
-# --- Paso 2: Popularidad ---
-popularidad_input = st.radio("2. ¿Qué tipo de rutas prefieres? Las rutas populares suelen ser más atractivas y cuentan con mejores valoraciones, pero también "
-"están más concurridas. Por otro lado, las rutas poco populares no cuentan con tantas opiniones, pero son poco transitadas y pueden sorprenderte. "
-"¡Descubre una nueva ruta de ensueño que nadie más conoce! :", ['Popular', 'Poco popular']).lower()
+if st.session_state.tipo_ruta_input:
+    st.markdown(f"**Opcion Seleccionada:** {st.session_state.tipo_ruta_input}")
 
-# --- Paso 3: Dificultad ---
-dificultad_input = st.radio("3. Nivel de dificultad de la ruta al que te quieres enfrentar:", ['Fácil', 'Estándar', 'Extremo']).lower()
+# --- Pregunta 2: Popularidad ---
+if st.session_state.tipo_ruta_input:
+    st.subheader("2. ¿Qué tipo de rutas prefieres?")
+    st.markdown("Las rutas populares suelen ser más atractivas y cuentan con mejores valoraciones, pero también "
+                "están más concurridas. Por otro lado, las rutas poco populares no cuentan con tantas opiniones, pero son poco transitadas y pueden sorprenderte. "
+                "**¡Descubre una nueva ruta de ensueño que nadie más conoce!**:")
 
-# --- Paso 4: Slider de duración ---
-st.write("4. Selecciona un rango estimado de duración para tu ruta (horas):")
-duracion_min, duracion_max = st.slider("Duración (horas):", 0.0, 15.0, (2.0, 5.0), 0.5)
+    col6, col7 = st.columns(2)
+    with col6:
+        if st.button("Popular"):
+            st.session_state.popularidad_input = 'popular'
+    with col7:
+        if st.button("Poco popular"):
+            st.session_state.popularidad_input = 'poco popular'
 
-# --- Botón para recomendar ---
-if st.button("🔍 Recomiendame mi Ruta"):
-    # Filtrar por tipo_ruta
-    rutas_filtradas = df_rutas[df_rutas['tipo_ruta_normalizada'] == tipo_ruta_norm]
+    if st.session_state.popularidad_input:
+        st.markdown(f"**Opcion Seleccionada:** {st.session_state.popularidad_input.title()}")
 
-    recomendaciones = []
+# --- Pregunta 3: Dificultad ---
+if st.session_state.popularidad_input:
+    st.subheader("3. Nivel de dificultad al que te quieres enfrentar:")
+    st.markdown("Elige el nivel de dificultad que mejor se adapte a tus exigencias y condiciones:\n\n"
+                "**Fácil**: Rutas sencillas y aptas para todos los públicos. Recorridos menores a 4 km.\n\n"
+                "**Estándar**: Rutas con cierta dificultad, pero asequibles para la mayoría de personas. Recorridos comprendidos entre 4 y 6.5 km.\n\n"
+                "**Extremo**: Rutas muy exigentes y solo aptas para los más aventureros. Recorridos superiores a 6.5 km.\n\n")
+    col8, col9, col10 = st.columns(3)
+    with col8:
+        if st.button("Fácil"):
+            st.session_state.dificultad_input = 'fácil'
+    with col9:
+        if st.button("Estándar"):
+            st.session_state.dificultad_input = 'estandar'
+    with col10:
+        if st.button("Extremo"):
+            st.session_state.dificultad_input = 'extremo'
 
-    for _, ruta in rutas_filtradas.iterrows():
-        puntuacion = 0
+    if st.session_state.dificultad_input:
+        st.markdown(f"**Opcion Seleccionada:** {st.session_state.dificultad_input.title()}")
 
-        if popularidad_input == 'popular' and ruta['popularidad'] >= 4.0:
-            puntuacion += 3
-        elif popularidad_input == 'poco popular' and ruta['popularidad'] < 4.0:
-            puntuacion += 3
+# --- Pregunta 4: Duración ---
+if st.session_state.dificultad_input:
+    st.subheader("4. Selecciona un rango estimado de duración para tu ruta (horas):")
+    st.session_state.duracion = st.slider("Duración medida en horas:", 0.0, 15.0, st.session_state.duracion, 0.5)
+    dur_min, dur_max = st.session_state.duracion
+    st.markdown(f"Has seleccionado: **{horas_a_hhmm(dur_min)}** — **{horas_a_hhmm(dur_max)}** horas.")
 
-        distancia = ruta['longitud_km']
-        if dificultad_input == 'fácil' and distancia < 4.0:
-            puntuacion += 2
-        elif dificultad_input == 'estandar' and 4.0 <= distancia <= 6.5:
-            puntuacion += 2
-        elif dificultad_input == 'extremo' and distancia > 6.5:
-            puntuacion += 2
+# --- Pregunta 5: Prioridad ---
+if st.session_state.dificultad_input:
+    st.subheader("5. Ordena los factores según su prioridad (1º más importante):")
+    prioridad_usuario = st.multiselect(
+        "Selecciona en orden:",
+        options=['Duración', 'Popularidad', 'Dificultad'],
+        default=st.session_state.prioridad,
+        key='prioridad',
+        help="Haz clic en el orden deseado"
+    )
 
-        duracion = ruta['duracion_hr']
-        if duracion_min <= duracion <= duracion_max:
-            puntuacion += 1
+# --- Botón siempre visible ---
+if st.session_state.dificultad_input:
+    if st.button("Recomiéndame mi Ruta"):
+        if len(st.session_state.prioridad) == 3:
+            pesos = {
+                st.session_state.prioridad[0]: 3,
+                st.session_state.prioridad[1]: 2,
+                st.session_state.prioridad[2]: 1
+            }
 
-        recomendaciones.append((ruta, puntuacion))
+            # [Cálculo de la ruta igual que antes...]
+            tipo_ruta_norm = normalizar_texto(st.session_state.tipo_ruta_input)
+            rutas_filtradas = df_rutas[df_rutas['tipo_ruta_normalizada'] == tipo_ruta_norm]
 
-    recomendaciones.sort(key=lambda x: x[1], reverse=True)
-    mejor_ruta = recomendaciones[0][0]
-    puntuacion_max = recomendaciones[0][1]
+            recomendaciones = []
+            dur_min, dur_max = st.session_state.duracion
 
-    st.success(f"Ruta recomendada: {mejor_ruta['ruta_nombre']}")
-    st.markdown(f"**Tipo:** {mejor_ruta['tipo_ruta']}  ")
-    st.markdown(f"**Valoración:** {mejor_ruta['popularidad']}  ")
-    st.markdown(f"**Distancia:** {mejor_ruta['longitud_km']} km  ")
-    st.markdown(f"**Duración:** {mejor_ruta['duracion_hr']} horas  ")
-    #st.markdown(f"**Puntuación calculada:** {puntuacion_max} puntos")
+            for _, ruta in rutas_filtradas.iterrows():
+                puntuacion = 0
+
+                if st.session_state.popularidad_input == 'popular' and ruta['popularidad'] >= 4.0:
+                    puntuacion += pesos['Popularidad']
+                elif st.session_state.popularidad_input == 'poco popular' and ruta['popularidad'] < 4.0:
+                    puntuacion += pesos['Popularidad']
+
+                distancia = ruta['longitud_km']
+                if st.session_state.dificultad_input == 'fácil' and distancia < 4.0:
+                    puntuacion += pesos['Dificultad']
+                elif st.session_state.dificultad_input == 'estandar' and 4.0 <= distancia <= 6.5:
+                    puntuacion += pesos['Dificultad']
+                elif st.session_state.dificultad_input == 'extremo' and distancia > 6.5:
+                    puntuacion += pesos['Dificultad']
+
+                duracion = ruta['duracion_hr']
+                if dur_min <= duracion <= dur_max:
+                    puntuacion += pesos['Duración']
+
+                recomendaciones.append((ruta, puntuacion))
+
+            recomendaciones.sort(key=lambda x: x[1], reverse=True)
+            mejor_ruta = recomendaciones[0][0]
+            duracion_ruta = horas_a_hhmm(mejor_ruta['duracion_hr'])
+
+            st.success(f"Ruta recomendada: {mejor_ruta['ruta_nombre']}")
+            st.markdown(f"**Tipo:** {mejor_ruta['tipo_ruta']}  ")
+            st.markdown(f"**Valoración:** {mejor_ruta['popularidad']}  ")
+            st.markdown(f"**Distancia:** {mejor_ruta['longitud_km']} km  ")
+            st.markdown(f"**Duración:** {duracion_ruta} horas")
+        else:
+            st.warning("Por favor, selecciona las tres prioridades antes de continuar.")
+
