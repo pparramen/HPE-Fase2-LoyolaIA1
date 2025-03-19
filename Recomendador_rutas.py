@@ -142,7 +142,7 @@ if st.session_state.popularidad_input:
         if st.button("😈 Extremo"):
             st.session_state.dificultad_input = 'extremo'
 
-    st.markdown("<div style='height:2px'></div>", unsafe_allow_html=True) #Espacio entre botone
+    st.markdown("<div style='height:2px'></div>", unsafe_allow_html=True) #Espacio entre botones
     if st.session_state.dificultad_input:
         st.markdown(f"**Opción Seleccionada:** {st.session_state.dificultad_input.title()}")
 
@@ -216,6 +216,7 @@ if st.session_state.dificultad_input:
         duracion_ruta = horas_a_hhmm(mejor_ruta['duracion_hr'])
 
         # --- Mostrar la ruta recomendada (CSS personalizado incluido) ---
+        st.markdown("<div style='height:2px'></div>", unsafe_allow_html=True) #Espacio entre botones
         st.markdown(f"""
         <div style="background-color:#f9f9f9; padding:15px; border-radius:10px; border:1px solid #ddd;">
         <h4>🌟 Ruta recomendada: {mejor_ruta['ruta_nombre']}</h4>
@@ -227,3 +228,13 @@ if st.session_state.dificultad_input:
         </ul>
         </div>
         """, unsafe_allow_html=True)
+
+        st.markdown("<div style='height:2px'></div>", unsafe_allow_html=True) #Espacio entre botones
+        st.subheader("Perfecto, ya has encontrado tu ruta ideal 🎉")
+        st.markdown("¿Te gustaría organizar tu viaje con nosotros y descubrir la mejor forma de llegar a tu destino? 😎\n\n"
+                    "Pues ponte cómodo y deja que organicemos tu viaje por ti, pulsando el botón de abajo:")
+        # Botón 
+        st.markdown("<div style='text-align:center;'>", unsafe_allow_html=True)
+        if st.button("🚌 Organiza mi viaje"):
+            st.switch_page("Recomendador_transporte.py")  # Requiere Streamlit 1.10+
+        st.markdown("</div>", unsafe_allow_html=True)
