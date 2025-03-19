@@ -1,21 +1,23 @@
-""
 import streamlit as st
 import pandas as pd
 import unicodedata
 
 # --- Funciones auxiliares ---
+
+#Normaliza el texto según la base de datos
 def normalizar_texto(texto):
     return ''.join(
         c for c in unicodedata.normalize('NFD', texto)
         if unicodedata.category(c) != 'Mn'
     ).lower()
 
+#Convierte las horas en formato decimal a hh:mm
 def horas_a_hhmm(decimal_horas):
     horas = int(decimal_horas)
     minutos = int((decimal_horas - horas) * 60)
     return f"{horas}:{minutos:02d}"
 
-# Cargar datos
+# Carga los datos de nuestra base de datos
 @st.cache_data
 def cargar_datos():
     df = pd.read_csv('baseDatos/rutas_turisticas.csv')
@@ -38,7 +40,7 @@ if 'dificultad_input' not in st.session_state:
 if 'duracion' not in st.session_state:
     st.session_state.duracion = (2.0, 5.0)
 if 'prioridad' not in st.session_state:
-    st.session_state.prioridad = []
+    st.session_state.prioridad = ['Duración', 'Popularidad', 'Dificultad']
 
 # --- Pregunta 1: Tipo de ruta ---
 st.subheader("1. Elige el tipo de experiencia que quieres vivir:")
@@ -108,65 +110,75 @@ if st.session_state.dificultad_input:
     dur_min, dur_max = st.session_state.duracion
     st.markdown(f"Has seleccionado: **{horas_a_hhmm(dur_min)}** — **{horas_a_hhmm(dur_max)}** horas.")
 
-# --- Pregunta 5: Prioridad ---
+# --- Pregunta 5: Prioridad de características de la ruta ---
 if st.session_state.dificultad_input:
-    st.subheader("5. Ordena los factores según su prioridad (1º más importante):")
-    prioridad_usuario = st.multiselect(
-        "Selecciona en orden:",
-        options=['Duración', 'Popularidad', 'Dificultad'],
-        default=st.session_state.prioridad,
-        key='prioridad',
-        help="Haz clic en el orden deseado"
-    )
+    st.subheader("5. ¿Qué priorizas más en tu ruta?")
+    st.markdown("Buscaremos la ruta que mejor se adapte a tus preferencias escogidas en las preguntas anteriores."
+            "Por favor, selecciona qué características **son más importantes para ti, de mayor a menor prioridad**, y las tendremos en cuenta para encontrar tu ruta ideal (1º: prioridad más importante):")
+    
+    opciones = ['Duración', 'Popularidad', 'Dificultad']
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        prioridad_1 = st.selectbox("1º Prioridad", opciones, key="pri1")
+    with col2:
+        restantes_1 = [o for o in opciones if o != prioridad_1]
+        prioridad_2 = st.selectbox("2º Prioridad", restantes_1, key="pri2")
+    with col3:
+        restantes_2 = [o for o in restantes_1 if o != prioridad_2]
+        prioridad_3 = restantes_2[0]
+        st.selectbox("3º Prioridad", options=[prioridad_3], index=0, disabled=True)
 
-# --- Botón siempre visible ---
+    prioridades_final = [prioridad_1, prioridad_2, prioridad_3]
+    st.session_state.prioridad = prioridades_final
+
+# --- Recomendador ---
+
+#Asigna los pesos a cada característica en función de la prioridad escogida en la última pregunta
+#El filtro recomendará la ruta que más puntos adquiera en función de la prioridad escogida
+#Asigna el peso 3 a la primera prioridad, 2 a la segunda y 1 a la tercera
+
 if st.session_state.dificultad_input:
     if st.button("Recomiéndame mi Ruta"):
-        if len(st.session_state.prioridad) == 3:
-            pesos = {
-                st.session_state.prioridad[0]: 3,
-                st.session_state.prioridad[1]: 2,
-                st.session_state.prioridad[2]: 1
-            }
+        pesos = {
+            st.session_state.prioridad[0]: 3, 
+            st.session_state.prioridad[1]: 2,
+            st.session_state.prioridad[2]: 1
+        }
 
-            # [Cálculo de la ruta igual que antes...]
-            tipo_ruta_norm = normalizar_texto(st.session_state.tipo_ruta_input)
-            rutas_filtradas = df_rutas[df_rutas['tipo_ruta_normalizada'] == tipo_ruta_norm]
+        tipo_ruta_norm = normalizar_texto(st.session_state.tipo_ruta_input)
+        rutas_filtradas = df_rutas[df_rutas['tipo_ruta_normalizada'] == tipo_ruta_norm]
 
-            recomendaciones = []
-            dur_min, dur_max = st.session_state.duracion
+        recomendaciones = []
+        dur_min, dur_max = st.session_state.duracion
 
-            for _, ruta in rutas_filtradas.iterrows():
-                puntuacion = 0
+        for _, ruta in rutas_filtradas.iterrows():
+            puntuacion = 0
 
-                if st.session_state.popularidad_input == 'popular' and ruta['popularidad'] >= 4.0:
-                    puntuacion += pesos['Popularidad']
-                elif st.session_state.popularidad_input == 'poco popular' and ruta['popularidad'] < 4.0:
-                    puntuacion += pesos['Popularidad']
+            if st.session_state.popularidad_input == 'popular' and ruta['popularidad'] >= 4.0:
+                puntuacion += pesos['Popularidad']
+            elif st.session_state.popularidad_input == 'poco popular' and ruta['popularidad'] < 4.0:
+                puntuacion += pesos['Popularidad']
 
-                distancia = ruta['longitud_km']
-                if st.session_state.dificultad_input == 'fácil' and distancia < 4.0:
-                    puntuacion += pesos['Dificultad']
-                elif st.session_state.dificultad_input == 'estandar' and 4.0 <= distancia <= 6.5:
-                    puntuacion += pesos['Dificultad']
-                elif st.session_state.dificultad_input == 'extremo' and distancia > 6.5:
-                    puntuacion += pesos['Dificultad']
+            distancia = ruta['longitud_km']
+            if st.session_state.dificultad_input == 'fácil' and distancia < 4.0:
+                puntuacion += pesos['Dificultad']
+            elif st.session_state.dificultad_input == 'estandar' and 4.0 <= distancia <= 6.5:
+                puntuacion += pesos['Dificultad']
+            elif st.session_state.dificultad_input == 'extremo' and distancia > 6.5:
+                puntuacion += pesos['Dificultad']
 
-                duracion = ruta['duracion_hr']
-                if dur_min <= duracion <= dur_max:
-                    puntuacion += pesos['Duración']
+            duracion = ruta['duracion_hr']
+            if dur_min <= duracion <= dur_max:
+                puntuacion += pesos['Duración']
 
-                recomendaciones.append((ruta, puntuacion))
+            recomendaciones.append((ruta, puntuacion))
 
-            recomendaciones.sort(key=lambda x: x[1], reverse=True)
-            mejor_ruta = recomendaciones[0][0]
-            duracion_ruta = horas_a_hhmm(mejor_ruta['duracion_hr'])
+        recomendaciones.sort(key=lambda x: x[1], reverse=True)
+        mejor_ruta = recomendaciones[0][0]
+        duracion_ruta = horas_a_hhmm(mejor_ruta['duracion_hr'])
 
-            st.success(f"Ruta recomendada: {mejor_ruta['ruta_nombre']}")
-            st.markdown(f"**Tipo:** {mejor_ruta['tipo_ruta']}  ")
-            st.markdown(f"**Valoración:** {mejor_ruta['popularidad']}  ")
-            st.markdown(f"**Distancia:** {mejor_ruta['longitud_km']} km  ")
-            st.markdown(f"**Duración:** {duracion_ruta} horas")
-        else:
-            st.warning("Por favor, selecciona las tres prioridades antes de continuar.")
-
+        st.success(f"Ruta recomendada: {mejor_ruta['ruta_nombre']}")
+        st.markdown(f"**Tipo:** {mejor_ruta['tipo_ruta']}  ")
+        st.markdown(f"**Valoración:** {mejor_ruta['popularidad']}  ")
+        st.markdown(f"**Distancia:** {mejor_ruta['longitud_km']} km  ")
+        st.markdown(f"**Duración:** {duracion_ruta} horas")
