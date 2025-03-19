@@ -2,6 +2,38 @@ import streamlit as st
 import pandas as pd
 import unicodedata
 
+# --- CSS personalizado para los botones ---
+st.markdown("""
+<style>
+body {
+    background: linear-gradient(to right, #dfe9f3, #ffffff);
+    font-family: 'Segoe UI', sans-serif;
+}
+div.stButton > button {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 10px;
+    border: none;
+    font-weight: bold;
+    transition: 0.3s;
+}
+div.stButton > button:hover {
+    background-color: #45a049;
+    color: #f0f0f0;
+}
+            
+div.stButton > button:focus {
+    color: black !important;
+    background-color: #4CAF50 !important;
+    font-weight: bold !important;
+    outline: none;
+}
+            
+    
+</style>
+""", unsafe_allow_html=True)
+
 # --- Funciones auxiliares ---
 
 #Normaliza el texto según la base de datos
@@ -27,8 +59,8 @@ def cargar_datos():
 df_rutas = cargar_datos()
 
 # --- Título ---
-st.title("Recomendador de Rutas Turísticas")
-st.markdown("##### Responde a nuestras preguntas para descubrir tu ruta ideal!")
+st.title("🌍 Recomendador de Rutas Turísticas en GreenLake Village 🌍")
+st.markdown("##### Responde a nuestras preguntas para descubrir tu ruta ideal! 🧭")
 
 # Inicializar estado
 if 'tipo_ruta_input' not in st.session_state:
@@ -43,102 +75,108 @@ if 'prioridad' not in st.session_state:
     st.session_state.prioridad = ['Duración', 'Popularidad', 'Dificultad']
 
 # --- Pregunta 1: Tipo de ruta ---
-st.subheader("1. Elige el tipo de experiencia que quieres vivir:")
-col1, col2, col3, col4, col5 = st.columns(5)
-with col1:
-    if st.button("Cultural"):
-        st.session_state.tipo_ruta_input = "Cultural"
+st.subheader("1️⃣ Elige el tipo de experiencia que quieres vivir:")
+#Primera fila de botones
+col1, col2, col3, col4, col5 = st.columns([1, 2, 2, 2, 1])
 with col2:
-    if st.button("Aventura"):
-        st.session_state.tipo_ruta_input = "Aventura"
+    if st.button("🏛️ Cultural"):
+        st.session_state.tipo_ruta_input = "Cultural"
 with col3:
-    if st.button("Ecológica"):
-        st.session_state.tipo_ruta_input = "Ecológica"
+    if st.button("🥾 Aventura"):
+        st.session_state.tipo_ruta_input = "Aventura"
 with col4:
-    if st.button("Histórica"):
+    if st.button("🌱 Ecológica"):
+        st.session_state.tipo_ruta_input = "Ecológica"
+
+st.markdown("<div style='height:2px'></div>", unsafe_allow_html=True) #Espacio entre botones
+
+#Segunda fila de botones
+col6, col7, col8, col9, col10 = st.columns([1.5, 2, 1.7, 1, 0.5 ])
+with col7:
+    if st.button("🏰 Histórica"):
         st.session_state.tipo_ruta_input = "Histórica"
-with col5:
-    if st.button("Gastronómica"):
+with col8:
+    if st.button("🍽️ Gastronómica"):
         st.session_state.tipo_ruta_input = "Gastronómica"
 
+st.markdown("<div style='height:2px'></div>", unsafe_allow_html=True)
 if st.session_state.tipo_ruta_input:
-    st.markdown(f"**Opcion Seleccionada:** {st.session_state.tipo_ruta_input}")
+    st.markdown(f"**Opción Seleccionada:** {st.session_state.tipo_ruta_input}")
 
 # --- Pregunta 2: Popularidad ---
 if st.session_state.tipo_ruta_input:
-    st.subheader("2. ¿Qué tipo de rutas prefieres?")
+    st.subheader("2️⃣ ¿Qué tipo de rutas prefieres?")
     st.markdown("Las rutas populares suelen ser más atractivas y cuentan con mejores valoraciones, pero también "
                 "están más concurridas. Por otro lado, las rutas poco populares no cuentan con tantas opiniones, pero son poco transitadas y pueden sorprenderte. "
                 "**¡Descubre una nueva ruta de ensueño que nadie más conoce!**:")
 
-    col6, col7 = st.columns(2)
-    with col6:
-        if st.button("Popular"):
+    col1, col2, col3, col4 = st.columns([1, 2, 2, 1])  # Márgenes y botones
+
+    with col2:
+        if st.button("🔥 Popular"):
             st.session_state.popularidad_input = 'popular'
-    with col7:
-        if st.button("Poco popular"):
+    with col3:
+        if st.button("❓ Poco popular"):
             st.session_state.popularidad_input = 'poco popular'
 
+    st.markdown("<div style='height:2px'></div>", unsafe_allow_html=True) #Espacio entre botones
     if st.session_state.popularidad_input:
-        st.markdown(f"**Opcion Seleccionada:** {st.session_state.popularidad_input.title()}")
+        st.markdown(f"**Opción Seleccionada:** {st.session_state.popularidad_input.title()}")
 
 # --- Pregunta 3: Dificultad ---
 if st.session_state.popularidad_input:
-    st.subheader("3. Nivel de dificultad al que te quieres enfrentar:")
+    st.subheader("3️⃣ Nivel de dificultad al que te quieres enfrentar:")
     st.markdown("Elige el nivel de dificultad que mejor se adapte a tus exigencias y condiciones:\n\n"
                 "**Fácil**: Rutas sencillas y aptas para todos los públicos. Recorridos menores a 4 km.\n\n"
                 "**Estándar**: Rutas con cierta dificultad, pero asequibles para la mayoría de personas. Recorridos comprendidos entre 4 y 6.5 km.\n\n"
                 "**Extremo**: Rutas muy exigentes y solo aptas para los más aventureros. Recorridos superiores a 6.5 km.\n\n")
-    col8, col9, col10 = st.columns(3)
+    
+    col7, col8, col9, col10, col11 = st.columns([1, 2, 2, 2, 1])
     with col8:
-        if st.button("Fácil"):
+        if st.button("✅ Fácil"):
             st.session_state.dificultad_input = 'fácil'
     with col9:
-        if st.button("Estándar"):
+        if st.button("⚖️ Estándar"):
             st.session_state.dificultad_input = 'estandar'
     with col10:
-        if st.button("Extremo"):
+        if st.button("😈 Extremo"):
             st.session_state.dificultad_input = 'extremo'
 
+    st.markdown("<div style='height:2px'></div>", unsafe_allow_html=True) #Espacio entre botone
     if st.session_state.dificultad_input:
-        st.markdown(f"**Opcion Seleccionada:** {st.session_state.dificultad_input.title()}")
+        st.markdown(f"**Opción Seleccionada:** {st.session_state.dificultad_input.title()}")
 
 # --- Pregunta 4: Duración ---
 if st.session_state.dificultad_input:
-    st.subheader("4. Selecciona un rango estimado de duración para tu ruta (horas):")
-    st.session_state.duracion = st.slider("Duración medida en horas:", 0.0, 15.0, st.session_state.duracion, 0.5)
+    st.subheader("4️⃣ Selecciona un rango estimado de duración para tu ruta (horas):")
+    st.session_state.duracion = st.slider("⏳ Duración medida en horas:", 0.0, 15.0, st.session_state.duracion, 0.5)
     dur_min, dur_max = st.session_state.duracion
     st.markdown(f"Has seleccionado: **{horas_a_hhmm(dur_min)}** — **{horas_a_hhmm(dur_max)}** horas.")
 
 # --- Pregunta 5: Prioridad de características de la ruta ---
 if st.session_state.dificultad_input:
-    st.subheader("5. ¿Qué priorizas más en tu ruta?")
-    st.markdown("Buscaremos la ruta que mejor se adapte a tus preferencias escogidas en las preguntas anteriores."
-            "Por favor, selecciona qué características **son más importantes para ti, de mayor a menor prioridad**, y las tendremos en cuenta para encontrar tu ruta ideal (1º: prioridad más importante):")
-    
+    st.subheader("5️⃣ ¿Qué priorizas más en tu ruta?")
+    st.markdown("Buscaremos la ruta que mejor se adapte a tus preferencias escogidas en las preguntas anteriores.\n"
+                "Selecciona qué características **son más importantes para ti, de mayor a menor prioridad**:\n")
+
     opciones = ['Duración', 'Popularidad', 'Dificultad']
     col1, col2, col3 = st.columns(3)
     with col1:
-        prioridad_1 = st.selectbox("1º Prioridad", opciones, key="pri1")
+        prioridad_1 = st.selectbox("🥇 **1º Prioridad**", opciones, key="pri1")
     with col2:
         restantes_1 = [o for o in opciones if o != prioridad_1]
-        prioridad_2 = st.selectbox("2º Prioridad", restantes_1, key="pri2")
+        prioridad_2 = st.selectbox("🥈 **2º Prioridad**", restantes_1, key="pri2")
     with col3:
         restantes_2 = [o for o in restantes_1 if o != prioridad_2]
         prioridad_3 = restantes_2[0]
-        st.selectbox("3º Prioridad", options=[prioridad_3], index=0, disabled=True)
+        st.selectbox("🥉 **3º Prioridad**", options=[prioridad_3], index=0, disabled=True)
 
     prioridades_final = [prioridad_1, prioridad_2, prioridad_3]
     st.session_state.prioridad = prioridades_final
 
 # --- Recomendador ---
-
-#Asigna los pesos a cada característica en función de la prioridad escogida en la última pregunta
-#El filtro recomendará la ruta que más puntos adquiera en función de la prioridad escogida
-#Asigna el peso 3 a la primera prioridad, 2 a la segunda y 1 a la tercera
-
 if st.session_state.dificultad_input:
-    if st.button("Recomiéndame mi Ruta"):
+    if st.button("🔍 Recomiéndame mi Ruta"):
         pesos = {
             st.session_state.prioridad[0]: 3, 
             st.session_state.prioridad[1]: 2,
@@ -177,8 +215,15 @@ if st.session_state.dificultad_input:
         mejor_ruta = recomendaciones[0][0]
         duracion_ruta = horas_a_hhmm(mejor_ruta['duracion_hr'])
 
-        st.success(f"Ruta recomendada: {mejor_ruta['ruta_nombre']}")
-        st.markdown(f"**Tipo:** {mejor_ruta['tipo_ruta']}  ")
-        st.markdown(f"**Valoración:** {mejor_ruta['popularidad']}  ")
-        st.markdown(f"**Distancia:** {mejor_ruta['longitud_km']} km  ")
-        st.markdown(f"**Duración:** {duracion_ruta} horas")
+        # --- Mostrar la ruta recomendada (CSS personalizado incluido) ---
+        st.markdown(f"""
+        <div style="background-color:#f9f9f9; padding:15px; border-radius:10px; border:1px solid #ddd;">
+        <h4>🌟 Ruta recomendada: {mejor_ruta['ruta_nombre']}</h4>
+        <ul>
+        <li><strong>Tipo:</strong> {mejor_ruta['tipo_ruta']}</li>
+        <li><strong>Valoración:</strong> {mejor_ruta['popularidad']}</li>
+        <li><strong>Distancia:</strong> {mejor_ruta['longitud_km']} km</li>
+        <li><strong>Duración:</strong> {duracion_ruta} horas</li>
+        </ul>
+        </div>
+        """, unsafe_allow_html=True)
