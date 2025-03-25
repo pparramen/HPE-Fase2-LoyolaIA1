@@ -1,5 +1,38 @@
 import streamlit as st
 
+
+ # --- CSS personalizado para los botones ---
+st.markdown("""
+    <style>
+    body {
+        background: linear-gradient(to right, #dfe9f3, #ffffff);
+        font-family: 'Segoe UI', sans-serif;
+    }
+    div.stButton > button {
+        background-color: #4CAF50;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 10px;
+        border: none;
+        font-weight: bold;
+        transition: 0.3s;
+    }
+    div.stButton > button:hover {
+        background-color: #45a049;
+        color: #f0f0f0;
+    }
+                
+    div.stButton > button:focus {
+        color: black !important;
+        background-color: #4CAF50 !important;
+        font-weight: bold !important;
+        outline: none;
+    }
+                
+        
+    </style>
+    """, unsafe_allow_html=True)
+
 # Inicializar página actual
 if "page" not in st.session_state:
     st.session_state.page = "home"

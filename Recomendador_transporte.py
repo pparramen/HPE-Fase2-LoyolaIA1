@@ -59,11 +59,43 @@ def predecir_transporte(origen, destino, fecha_str, preferencia):
 # Streamlit App
 # --------------------
 def app(change_page_func):
+
+     # --- CSS personalizado para los botones ---
+    st.markdown("""
+    <style>
+    body {
+        background: linear-gradient(to right, #dfe9f3, #ffffff);
+        font-family: 'Segoe UI', sans-serif;
+    }
+    div.stButton > button {
+        background-color: #4CAF50;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 10px;
+        border: none;
+        font-weight: bold;
+        transition: 0.3s;
+    }
+    div.stButton > button:hover {
+        background-color: #45a049;
+        color: #f0f0f0;
+    }
+                
+    div.stButton > button:focus {
+        color: black !important;
+        background-color: #4CAF50 !important;
+        font-weight: bold !important;
+        outline: none;
+    }
+                
+        
+    </style>
+    """, unsafe_allow_html=True)
+
+
     st.title("🌍 Organizador de viajes en GreenLake Village 🌍")
 
-    if st.button("🏠 Volver al Inicio"):
-        change_page_func("home")
-
+  
     if "resultado_ruta" not in st.session_state or st.session_state.resultado_ruta is None:
         st.warning("Primero debes seleccionar una ruta en la página anterior.")
         return
@@ -71,6 +103,9 @@ def app(change_page_func):
     destino_completo = st.session_state.resultado_ruta['nombre']
     destino = destino_completo.split(' - ')[0]
     st.markdown(f"### 📍 Tu destino es: **{destino}**")
+
+    st.markdown("##### ¿Listo para dar el siguiente paso? 🧳 \n\n"
+    " Ya conocemos tu destino ideal, ahora es el momento de llegar a él. Te ayudaremos a encontrar el mejor trayecto que se adapte a tus necesidades, para que solo tengas que preocuparte por disfrutar del viaje. 😎🏞️")
 
     @st.cache_data
     def cargar_ciudades():
@@ -104,3 +139,9 @@ def app(change_page_func):
         st.markdown(f"**Duración estimada:** {resultado['tiempo_estimado_min']} minutos")
         st.markdown(f"**Popularidad estimada:** {resultado['usuarios_estimados']} usuarios")
         st.markdown(f"**Sostenibilidad:** {resultado['sostenibilidad_nivel']} / 5")
+
+    if st.button("🏠 Volver al Inicio"):
+        change_page_func("home")
+
+
+        
