@@ -4,7 +4,7 @@ import unicodedata
 
 def app(change_page_func):
 
-    # --- Reinicio del estado si venimos desde transporte ---
+    # --- Reinicio del estado si venimos desde Home ---
     if st.session_state.get("reset_rutas", False):
         for key in [
             "tipo_ruta_input", "popularidad_input", "dificultad_input",
@@ -56,20 +56,20 @@ def app(change_page_func):
 
     # --- Funciones auxiliares ---
 
-    #Normaliza el texto según la base de datos
+    #Normalizamos el texto según la base de datos
     def normalizar_texto(texto):
         return ''.join(
             c for c in unicodedata.normalize('NFD', texto)
             if unicodedata.category(c) != 'Mn'
         ).lower()
 
-    #Convierte las horas en formato decimal a hh:mm
+    #Convertimos las horas en formato decimal a hh:mm
     def horas_a_hhmm(decimal_horas):
         horas = int(decimal_horas)
         minutos = int((decimal_horas - horas) * 60)
         return f"{horas}:{minutos:02d}"
 
-    # Carga los datos de nuestra base de datos
+    # Cargamos los datos de nuestra base de datos
     @st.cache_data
     def cargar_datos():
         df = pd.read_csv('baseDatos/rutas_turisticas.csv')
@@ -83,7 +83,7 @@ def app(change_page_func):
     st.title("🌍 Recomendador de Rutas Turísticas en GreenLake Village 🌍")
     st.markdown("##### Responde a nuestras preguntas para descubrir tu ruta ideal! 🧭")
 
-    # Inicializar estado
+    # Inicializamos el estado
     if 'tipo_ruta_input' not in st.session_state:
         st.session_state.tipo_ruta_input = ''
     if 'popularidad_input' not in st.session_state:
@@ -136,7 +136,7 @@ def app(change_page_func):
                     "están más concurridas. Por otro lado, las rutas poco populares no cuentan con tantas opiniones, pero son poco transitadas y pueden sorprenderte. "
                     "**¡Descubre una nueva ruta de ensueño que nadie más conoce!**:")
 
-        col1, col2, col3, col4 = st.columns([1, 2, 2, 1])  # Márgenes y botones
+        col1, col2, col3, col4 = st.columns([1, 2, 2, 1]) 
 
         with col2:
             if st.button("🔥 Popular"):
@@ -179,7 +179,7 @@ def app(change_page_func):
        
 
     # --- Pregunta 4: Duración ---
-    # Inicializar duración anterior si no existe
+    # Inicializamos duración anterior si no existe
     if "duracion_anterior" not in st.session_state:
         st.session_state.duracion_anterior = st.session_state.duracion 
 
@@ -214,13 +214,13 @@ def app(change_page_func):
 
         prioridades_final = [prioridad_1, prioridad_2, prioridad_3]
 
-        # ⚠️ Si cambian las prioridades, limpiamos el resultado
+        # Si cambian las prioridades, limpiamos el resultado
         if st.session_state.prioridad != prioridades_final:
             st.session_state.clear_resultado = True
         st.session_state.prioridad = prioridades_final
 
 
-    # --- BORRAMOS LA RUTA SI HUBO CAMBIOS EN OPCIONES ---
+
     if st.session_state.get("clear_resultado", False):
         st.session_state.resultado_ruta = None
         st.session_state.clear_resultado = False
@@ -267,7 +267,7 @@ def app(change_page_func):
             mejor_ruta = recomendaciones[0][0]
             duracion_ruta = horas_a_hhmm(mejor_ruta['duracion_hr'])
 
-            # GUARDAR ruta recomendada en session_state
+            # Guardamos ruta recomendada en session_state para después usarla
             st.session_state.resultado_ruta = {
                 "nombre": mejor_ruta['ruta_nombre'],
                 "tipo": mejor_ruta['tipo_ruta'],
@@ -277,7 +277,7 @@ def app(change_page_func):
             }
 
 
-    # --- MOSTRAR RUTA RECOMENDADA SI EXISTE ---
+    # --- MOSTRAR RUTA RECOMENDADA ---
     if st.session_state.resultado_ruta:
         ruta = st.session_state.resultado_ruta
 

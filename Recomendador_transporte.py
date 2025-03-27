@@ -4,9 +4,7 @@ import unicodedata
 from datetime import date
 import joblib
 
-# --------------------
-# Cargar y usar modelos IA
-# --------------------
+#Cargamos nuestros modelos de Clasificación y Regresión entrenados previamente con los datos de uso de transporte
 def cargar_modelos(preferencia):
     sufijo = preferencia.lower()
     base_path = f"modelos/predictor_rutas_transportes/"
@@ -20,7 +18,8 @@ def cargar_modelos(preferencia):
 
     return clf, reg_time, reg_users, le_origen, le_destino, le_transporte
 
-
+#Realizamos la predicción del transporte más adecuado según la ruta, fecha y preferencia del usuario (Clasificación)
+#Además, se estiman el tiempo de ese trayecto y el número de usuarios que utilizan ese transporte en esa fecha (Regresión)
 def predecir_transporte(origen, destino, fecha_str, preferencia):
     fecha = pd.to_datetime(fecha_str)
     mes = fecha.month
@@ -38,6 +37,7 @@ def predecir_transporte(origen, destino, fecha_str, preferencia):
     tiempo_estimado = reg_time.predict(X_input)[0]
     usuarios_estimados = reg_users.predict(X_input)[0]
 
+    #Asignamos un score de sostenibilidad a cada medio de transporte
     sostenibilidad_map = {
         'Bicicleta': 5,
         'Tranvía': 4,
@@ -48,6 +48,7 @@ def predecir_transporte(origen, destino, fecha_str, preferencia):
     }
     eco_nivel = sostenibilidad_map.get(transporte_pred, 3)
 
+    #Devolvemos las predicciones y el nivel de sostenibilidad de nuestra opción
     return {
         'transporte_recomendado': transporte_pred,
         'tiempo_estimado_min': int(round(tiempo_estimado)),
@@ -55,9 +56,7 @@ def predecir_transporte(origen, destino, fecha_str, preferencia):
         'sostenibilidad_nivel': eco_nivel
     }
 
-# --------------------
-# Streamlit App
-# --------------------
+#Función principal de la página de recomendación de transporte
 def app(change_page_func):
 
      # --- CSS personalizado para los botones ---
@@ -100,6 +99,7 @@ def app(change_page_func):
         st.warning("Primero debes seleccionar una ruta en la página anterior.")
         return
 
+    #Cargamos la ruta recomendada al usuario en la página anterior
     destino_completo = st.session_state.resultado_ruta['nombre']
     destino = destino_completo.split(' - ')[0]
     st.markdown(f"### 📍 Tu destino es: **{destino}**")
@@ -107,6 +107,7 @@ def app(change_page_func):
     st.markdown("##### ¿Listo para dar el siguiente paso? 🧳 \n\n"
     " Ya conocemos tu destino ideal, ahora es el momento de llegar a él. Te ayudaremos a encontrar el mejor trayecto que se adapte a tus necesidades, para que solo tengas que preocuparte por disfrutar del viaje. 😎🏞️")
 
+    #Cargamos las ciudades de origen disponibles para nuestro destino de la base de datos
     @st.cache_data
     def cargar_ciudades():
         df = pd.read_csv("baseDatos/uso_transporte.csv")
@@ -115,33 +116,87 @@ def app(change_page_func):
         return [c for c in ciudades if c != destino]
 
     ciudades_origen = cargar_ciudades()
-    origen = st.selectbox("📍 Selecciona tu ciudad de origen:", ciudades_origen)
-    fecha = st.date_input("📅 Selecciona una fecha estimada:", min_value=date.today())
+    st.markdown("##### 📍 Selecciona tu ciudad de origen")
+    origen = st.selectbox("_Escoge entre las opciones disponibles según las rutas registradas:_", ciudades_origen)
 
-    st.markdown("### 💡 ¿Qué prefieres priorizar en tu viaje?")
-    col1, col2, col3 = st.columns(3)
+    #Seleccionamos una fecha que tiene que ser actual o futura
+    st.markdown("##### 📅 Selecciona la fecha estimada del viaje")
+    fecha = st.date_input("_Usaremos esta información para predecir el transporte más adecuado esa semana:_", min_value=date.today())
+
+    st.markdown("<div style='height:2px'></div>", unsafe_allow_html=True) #Espacio entre botones
+
+    st.markdown("#### 💡 ¿Qué prefieres priorizar en tu viaje?")
+    st.markdown("Selecciona tu preferencia para optimizar tu viaje:\n\n"
+                "**🌱 Sostenibilidad**: ¡En GreenLake Village apostamos por un turismo responsable! Priorizaremos el medio de transporte más sostenible disponible según tu ruta y fecha.\n\n"
+                "**⏱️ Eficiencia**: ¿Quieres llegar rápido? Te recomendaremos el transporte que requiera el menor tiempo en llegar a su destino entre las opciones viables.\n\n"
+                "**🔥 Popularidad**: Basándonos en datos históricos, seleccionaremos el transporte más utilizado por otros viajeros en fechas similares.\n\n"
+)
+
+    col1, col2, col3, col4, col5 = st.columns([1, 2, 1.7, 2, 1])
     preferencia = None
-    with col1:
+    with col2:
         if st.button("🌱 Sostenibilidad"):
             preferencia = "eco"
-    with col2:
+    with col3:
         if st.button("⏱️ Eficiencia"):
             preferencia = "eficiencia"
-    with col3:
+    with col4:
         if st.button("🔥 Popularidad"):
             preferencia = "popularidad"
 
+    #Tras definir los parámetros, aparecerá la predicción del transporte más adecuado para el usuario
     if origen and destino and fecha and preferencia:
         resultado = predecir_transporte(origen, destino, str(fecha), preferencia)
-        st.markdown("---")
-        st.subheader("🚀 Transporte recomendado")
-        st.markdown(f"**Transporte:** {resultado['transporte_recomendado']}")
-        st.markdown(f"**Duración estimada:** {resultado['tiempo_estimado_min']} minutos")
-        st.markdown(f"**Popularidad estimada:** {resultado['usuarios_estimados']} usuarios")
-        st.markdown(f"**Sostenibilidad:** {resultado['sostenibilidad_nivel']} / 5")
 
-    if st.button("🏠 Volver al Inicio"):
-        change_page_func("home")
+        st.markdown("---")
+        st.markdown(f"""
+        <div style="background-color:#f9f9f9; padding:15px; border-radius:10px; border:1px solid #ddd;">
+        <h4>🚀 Transporte recomendado</h4>
+        <ul>
+            <li><strong>Transporte:</strong> {resultado['transporte_recomendado']}</li>
+            <li><strong>Duración estimada:</strong> {resultado['tiempo_estimado_min']} minutos</li>
+            <li><strong>Popularidad estimada:</strong> {resultado['usuarios_estimados']} usuarios</li>
+            <li><strong>Sostenibilidad:</strong> {resultado['sostenibilidad_nivel']} / 5</li>
+        </ul>
+        </div>
+        """, unsafe_allow_html=True)
+
+        #Visulizamos un resumen de nuestra ruta recomendada con todas sus características
+        st.markdown("<div style='height:2px'></div>", unsafe_allow_html=True)
+        st.subheader("¡Felicidades, ya tienes planificada tu ruta en GreenLake Village! ⛰️💫")
+        st.markdown("A continuación, vamos a proporcionarte un resumen de la recomendación de nuestro algoritmo \n\n")   
+        ruta_nombre = st.session_state.resultado_ruta['nombre']
+        duracion_ruta = st.session_state.resultado_ruta['duracion']
+
+        st.markdown("""
+        <div style="background-color:#e8f5e9; padding:20px; border-radius:12px; border:1px solid #c8e6c9;">
+        <h4>📝 Resumen de tu viaje</h4>
+        <ul>
+            <li><strong>🧭 Ruta escogida:</strong> {ruta}</li>
+            <li><strong>🗺️ Trayecto seleccionado:</strong> {trayecto}</li>
+            <li><strong>🚍 Transporte escogido:</strong> {transporte}</li>
+            <li><strong>📅 Fecha estimada:</strong> {fecha}</li>
+            <li><strong>⏱️ Tiempo estimado de trayecto:</strong> {tiempo_trayecto} minutos</li>
+            <li><strong>🕓 Duración estimada de la ruta:</strong> {tiempo_ruta} horas</li>
+        </ul>
+        </div>
+        """.format(
+            ruta = ruta_nombre,
+            trayecto= origen + " - " + destino,
+            transporte=resultado['transporte_recomendado'],
+            fecha=fecha.strftime('%d/%m/%Y'),
+            tiempo_trayecto=resultado['tiempo_estimado_min'],
+            tiempo_ruta=duracion_ruta
+        ), unsafe_allow_html=True)
+
+        st.markdown("<div style='height:5px'></div>", unsafe_allow_html=True) #Espacio entre botones
+
+        st.markdown("Gracias por confiar en nosotros para encontrar tu ruta ideal. Deseamos que disfrutes de tu viaje, te esperamos en GreenLake Village 😄🌍 ")
+
+        st.markdown("<div style='height:5px'></div>", unsafe_allow_html=True) #Espacio entre botones
+        #Botón para volver al inicio
+        if st.button("🏠 Volver al Inicio"):
+            change_page_func("home")
 
 
         
