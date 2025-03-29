@@ -9,8 +9,8 @@ ocupacion = pd.read_csv('datos/ocupacion_hotelera.csv')
 opiniones = pd.read_csv('datos/opiniones_turisticas.csv')
 sostenibilidad = pd.read_csv('datos/datos_sostenibilidad.csv')
 
-st.title('Destination: Green Lake')
-st.image('imagen_intro.png')
+st.title('Servicios de Green Lake')
+st.image('img/imagen_intro.png')
 
 # Creamos un dataset con las opiniones agrupadas por servicio 
 conteo_servicios = opiniones['nombre_servicio'].value_counts().to_dict()
