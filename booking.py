@@ -3,11 +3,11 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-rutas = pd.read_csv('rutas_turisticas.csv')
-transporte = pd.read_csv('uso_transporte.csv')
-ocupacion = pd.read_csv('ocupacion_hotelera.csv')
-opiniones = pd.read_csv('opiniones_turisticas.csv')
-sostenibilidad = pd.read_csv('datos_sostenibilidad.csv')
+rutas = pd.read_csv('datos/rutas_turisticas.csv')
+transporte = pd.read_csv('datos/uso_transporte.csv')
+ocupacion = pd.read_csv('datos/ocupacion_hotelera.csv')
+opiniones = pd.read_csv('datos/opiniones_turisticas.csv')
+sostenibilidad = pd.read_csv('datos/datos_sostenibilidad.csv')
 
 st.title('Destination: Green Lake')
 st.image('imagen_intro.png')
