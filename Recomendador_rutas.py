@@ -159,7 +159,7 @@ def app(change_page_func):
                     "**Estándar**: Rutas con cierta dificultad, pero asequibles para la mayoría de personas. Recorridos comprendidos entre 4 y 6.5 km.\n\n"
                     "**Extremo**: Rutas muy exigentes y solo aptas para los más aventureros. Recorridos superiores a 6.5 km.\n\n")
         
-        col7, col8, col9, col10, col11 = st.columns([1, 2, 2, 2, 1])
+        col7, col8, col9, col10, col11 = st.columns([1, 1.8, 2, 2, 1])
         with col8:
             if st.button("✅ Fácil"):
                 st.session_state.dificultad_input = 'fácil'
@@ -301,5 +301,9 @@ def app(change_page_func):
         # Botón para ir a transporte
         st.markdown("<div style='text-align:center;'>", unsafe_allow_html=True)
         if st.button("🚌 Organiza mi viaje"):
+            st.session_state.resultado_transporte = None
+            st.session_state.preferencia_transporte = None
+            st.session_state.origen = None
+            st.session_state.fecha = None
             change_page_func("transporte")
         st.markdown("</div>", unsafe_allow_html=True)

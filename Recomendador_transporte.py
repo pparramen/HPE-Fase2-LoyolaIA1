@@ -58,8 +58,7 @@ def predecir_transporte(origen, destino, fecha_str, preferencia):
 
 #Función principal de la página de recomendación de transporte
 def app(change_page_func):
-
-     # --- CSS personalizado para los botones ---
+    # --- CSS personalizado para los botones ---
     st.markdown("""
     <style>
     body {
@@ -79,124 +78,125 @@ def app(change_page_func):
         background-color: #45a049;
         color: #f0f0f0;
     }
-                
     div.stButton > button:focus {
         color: black !important;
         background-color: #4CAF50 !important;
         font-weight: bold !important;
         outline: none;
     }
-                
-        
     </style>
     """, unsafe_allow_html=True)
 
-
     st.title("🌍 Organizador de viajes en GreenLake Village 🌍")
 
-  
     if "resultado_ruta" not in st.session_state or st.session_state.resultado_ruta is None:
         st.warning("Primero debes seleccionar una ruta en la página anterior.")
         return
 
-    #Cargamos la ruta recomendada al usuario en la página anterior
     destino_completo = st.session_state.resultado_ruta['nombre']
     destino = destino_completo.split(' - ')[0]
     st.markdown(f"### 📍 Tu destino es: **{destino}**")
 
     st.markdown("##### ¿Listo para dar el siguiente paso? 🧳 \n\n"
-    " Ya conocemos tu destino ideal, ahora es el momento de llegar a él. Te ayudaremos a encontrar el mejor trayecto que se adapte a tus necesidades, para que solo tengas que preocuparte por disfrutar del viaje. 😎🏞️")
+                " Ya conocemos tu destino ideal, ahora es el momento de llegar a él. Te ayudaremos a encontrar el mejor trayecto que se adapte a tus necesidades, para que solo tengas que preocuparte por disfrutar del viaje. 😎🏞️")
 
-    #Cargamos las ciudades de origen disponibles para nuestro destino de la base de datos
+    #Cargamos los datos de ciudades de origen posible
     @st.cache_data
     def cargar_ciudades():
         df = pd.read_csv("baseDatos/uso_transporte.csv")
         df[['origen', 'destino']] = df['ruta_popular'].str.split(' - ', expand=True)
-        ciudades = sorted(df['origen'].unique())
-        return [c for c in ciudades if c != destino]
+        return sorted(df['origen'].unique())
 
-    ciudades_origen = cargar_ciudades()
+    ciudades_origen = [c for c in cargar_ciudades() if c != destino]
+
+
+    opciones_con_placeholder = ["Escoge una opción"] + ciudades_origen
     st.markdown("##### 📍 Selecciona tu ciudad de origen")
-    origen = st.selectbox("_Escoge entre las opciones disponibles según las rutas registradas:_", ciudades_origen)
+    origen = st.selectbox("_Escoge entre las opciones disponibles según las rutas registradas:_", opciones_con_placeholder)
 
-    #Seleccionamos una fecha que tiene que ser actual o futura
-    st.markdown("##### 📅 Selecciona la fecha estimada del viaje")
-    fecha = st.date_input("_Usaremos esta información para predecir el transporte más adecuado esa semana:_", min_value=date.today())
+    #Al escoger la ciudad de origen se desvelan el resto de opciones de configuración
+    if origen != "Escoge una opción":
+        st.session_state.origen = origen
 
-    st.markdown("<div style='height:2px'></div>", unsafe_allow_html=True) #Espacio entre botones
+        st.markdown("##### 📅 Selecciona la fecha estimada del viaje")   
+        fecha = st.date_input("_Usaremos esta información para predecir el transporte más adecuado esa semana:_", value=date.today() if st.session_state.get("fecha") is None else st.session_state.fecha, min_value=date.today())
+        st.session_state.fecha = fecha
 
-    st.markdown("#### 💡 ¿Qué prefieres priorizar en tu viaje?")
-    st.markdown("Selecciona tu preferencia para optimizar tu viaje:\n\n"
-                "**🌱 Sostenibilidad**: ¡En GreenLake Village apostamos por un turismo responsable! Priorizaremos el medio de transporte más sostenible disponible según tu ruta y fecha.\n\n"
-                "**⏱️ Eficiencia**: ¿Quieres llegar rápido? Te recomendaremos el transporte que requiera el menor tiempo en llegar a su destino entre las opciones viables.\n\n"
-                "**🔥 Popularidad**: Basándonos en datos históricos, seleccionaremos el transporte más utilizado por otros viajeros en fechas similares.\n\n"
-)
-
-    col1, col2, col3, col4, col5 = st.columns([1, 2, 1.7, 2, 1])
-    preferencia = None
-    with col2:
-        if st.button("🌱 Sostenibilidad"):
-            preferencia = "eco"
-    with col3:
-        if st.button("⏱️ Eficiencia"):
-            preferencia = "eficiencia"
-    with col4:
-        if st.button("🔥 Popularidad"):
-            preferencia = "popularidad"
-
-    #Tras definir los parámetros, aparecerá la predicción del transporte más adecuado para el usuario
-    if origen and destino and fecha and preferencia:
-        resultado = predecir_transporte(origen, destino, str(fecha), preferencia)
-
-        st.markdown("---")
-        st.markdown(f"""
-        <div style="background-color:#f9f9f9; padding:15px; border-radius:10px; border:1px solid #ddd;">
-        <h4>🚀 Transporte recomendado</h4>
-        <ul>
-            <li><strong>Transporte:</strong> {resultado['transporte_recomendado']}</li>
-            <li><strong>Duración estimada:</strong> {resultado['tiempo_estimado_min']} minutos</li>
-            <li><strong>Popularidad estimada:</strong> {resultado['usuarios_estimados']} usuarios</li>
-            <li><strong>Sostenibilidad:</strong> {resultado['sostenibilidad_nivel']} / 5</li>
-        </ul>
-        </div>
-        """, unsafe_allow_html=True)
-
-        #Visulizamos un resumen de nuestra ruta recomendada con todas sus características
         st.markdown("<div style='height:2px'></div>", unsafe_allow_html=True)
-        st.subheader("¡Felicidades, ya tienes planificada tu ruta en GreenLake Village! ⛰️💫")
-        st.markdown("A continuación, vamos a proporcionarte un resumen de la recomendación de nuestro algoritmo \n\n")   
-        ruta_nombre = st.session_state.resultado_ruta['nombre']
-        duracion_ruta = st.session_state.resultado_ruta['duracion']
 
-        st.markdown("""
-        <div style="background-color:#e8f5e9; padding:20px; border-radius:12px; border:1px solid #c8e6c9;">
-        <h4>📝 Resumen de tu viaje</h4>
-        <ul>
-            <li><strong>🧭 Ruta escogida:</strong> {ruta}</li>
-            <li><strong>🗺️ Trayecto seleccionado:</strong> {trayecto}</li>
-            <li><strong>🚍 Transporte escogido:</strong> {transporte}</li>
-            <li><strong>📅 Fecha estimada:</strong> {fecha}</li>
-            <li><strong>⏱️ Tiempo estimado de trayecto:</strong> {tiempo_trayecto} minutos</li>
-            <li><strong>🕓 Duración estimada de la ruta:</strong> {tiempo_ruta} horas</li>
-        </ul>
-        </div>
-        """.format(
-            ruta = ruta_nombre,
-            trayecto= origen + " - " + destino,
-            transporte=resultado['transporte_recomendado'],
-            fecha=fecha.strftime('%d/%m/%Y'),
-            tiempo_trayecto=resultado['tiempo_estimado_min'],
-            tiempo_ruta=duracion_ruta
-        ), unsafe_allow_html=True)
+        st.markdown("#### 💡 ¿Qué prefieres priorizar en tu viaje?")
+        st.markdown("Selecciona tu preferencia para optimizar tu viaje:\n\n"
+                    "**🌱 Sostenibilidad**: ¡En GreenLake Village apostamos por un turismo responsable! Priorizaremos el medio de transporte más sostenible disponible según tu ruta y fecha.\n\n"
+                    "**⏱️ Eficiencia**: ¿Quieres llegar rápido? Te recomendaremos el transporte que requiera el menor tiempo en llegar a su destino entre las opciones viables.\n\n"
+                    "**🔥 Popularidad**: Basándonos en datos históricos, seleccionaremos el transporte más utilizado por otros viajeros en fechas similares.\n\n")
 
-        st.markdown("<div style='height:5px'></div>", unsafe_allow_html=True) #Espacio entre botones
+        col1, col2, col3, col4, col5 = st.columns([1, 2, 1.7, 2, 1])
+        if "preferencia_transporte" not in st.session_state:
+            st.session_state.preferencia_transporte = None
 
-        st.markdown("Gracias por confiar en nosotros para encontrar tu ruta ideal. Deseamos que disfrutes de tu viaje, te esperamos en GreenLake Village 😄🌍 ")
+        with col2:
+            if st.button("🌱 Sostenibilidad"):
+                st.session_state.preferencia_transporte = "eco"
+        with col3:
+            if st.button("⏱️ Eficiencia"):
+                st.session_state.preferencia_transporte = "eficiencia"
+        with col4:
+            if st.button("🔥 Popularidad"):
+                st.session_state.preferencia_transporte = "popularidad"
 
-        st.markdown("<div style='height:5px'></div>", unsafe_allow_html=True) #Espacio entre botones
-        #Botón para volver al inicio
-        if st.button("🏠 Volver al Inicio"):
-            change_page_func("home")
+        preferencia = st.session_state.preferencia_transporte
 
+        #Nos indica si el usuario ha seleccionado una opción de preferencia
+        if preferencia:
+            st.success(f"Has seleccionado la opción: **{preferencia.capitalize()}**")
+            st.session_state.resultado_transporte = predecir_transporte(origen, destino, str(fecha), preferencia)
 
-        
+        resultado = st.session_state.get("resultado_transporte")
+        if resultado:
+            st.markdown("---")
+            st.markdown(f"""
+            <div style="background-color:#f9f9f9; padding:15px; border-radius:10px; border:1px solid #ddd;">
+            <h4>🚀 Transporte recomendado</h4>
+            <ul>
+                <li><strong>Transporte:</strong> {resultado['transporte_recomendado']}</li>
+                <li><strong>Duración estimada:</strong> {resultado['tiempo_estimado_min']} minutos</li>
+                <li><strong>Popularidad estimada:</strong> {resultado['usuarios_estimados']} usuarios</li>
+                <li><strong>Sostenibilidad:</strong> {resultado['sostenibilidad_nivel']} / 5</li>
+            </ul>
+            </div>
+            """, unsafe_allow_html=True)
+
+            st.markdown("<div style='height:2px'></div>", unsafe_allow_html=True)
+            st.subheader("¡Felicidades, ya tienes planificada tu ruta en GreenLake Village! ⛰️💫")
+            st.markdown("A continuación, vamos a proporcionarte un resumen de la recomendación de nuestro algoritmo \n\n")
+            ruta_nombre = st.session_state.resultado_ruta['nombre']
+            duracion_ruta = st.session_state.resultado_ruta['duracion']
+
+            st.markdown("""
+            <div style="background-color:#e8f5e9; padding:20px; border-radius:12px; border:1px solid #c8e6c9;">
+            <h4>📝 Resumen de tu viaje</h4>
+            <ul>
+                <li><strong>🧭 Ruta escogida:</strong> {ruta}</li>
+                <li><strong> 🗺️ Trayecto seleccionado:</strong> {trayecto}</li>
+                <li><strong>🚍 Transporte escogido:</strong> {transporte}</li>
+                <li><strong>🗓️ Fecha estimada:</strong> {fecha}</li>
+                <li><strong>⏱️ Tiempo estimado de trayecto:</strong> {tiempo_trayecto} minutos</li>
+                <li><strong>🕓 Duración estimada de la ruta:</strong> {tiempo_ruta} horas</li>
+            </ul>
+            </div>
+            """.format(
+                ruta = ruta_nombre,
+                trayecto= origen + " - " + destino,
+                transporte=resultado['transporte_recomendado'],
+                fecha=fecha.strftime('%d/%m/%Y'),
+                tiempo_trayecto=resultado['tiempo_estimado_min'],
+                tiempo_ruta=duracion_ruta
+            ), unsafe_allow_html=True)
+
+            st.markdown("<div style='height:5px'></div>", unsafe_allow_html=True)
+            st.markdown("Gracias por confiar en nosotros para encontrar tu ruta ideal. Deseamos que disfrutes de tu viaje, te esperamos en GreenLake Village 😄🌍 ")
+
+            #Botón para volver al inicio
+            st.markdown("<div style='height:5px'></div>", unsafe_allow_html=True)
+            if st.button("🏠 Volver al Inicio"):
+                change_page_func("home")
