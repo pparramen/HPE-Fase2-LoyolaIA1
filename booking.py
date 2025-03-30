@@ -3,11 +3,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-rutas = pd.read_csv('datos/rutas_turisticas.csv')
-transporte = pd.read_csv('datos/uso_transporte.csv')
-ocupacion = pd.read_csv('datos/ocupacion_hotelera.csv')
+
 opiniones = pd.read_csv('datos/opiniones_turisticas.csv')
-sostenibilidad = pd.read_csv('datos/datos_sostenibilidad.csv')
+opiniones = opiniones[opiniones['tipo_servicio'] != 'Hotel']
 
 st.title('Servicios de Green Lake')
 st.image('img/imagen_intro.png')
