@@ -37,4 +37,4 @@ for hotel in hoteles:
 
 
 print(df_resultados)
-df_resultados.to_csv("../datos/predicciones_hoteles_2025.csv", index=True)
+df_resultados.to_csv("../Basedatos/predicciones_hoteles_2025.csv", index=True)
