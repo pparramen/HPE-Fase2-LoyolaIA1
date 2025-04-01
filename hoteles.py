@@ -61,10 +61,11 @@ opiniones_por_pagina = 3
 total_opiniones = len(opiniones_filtradas)
 total_paginas = (total_opiniones // opiniones_por_pagina) + (1 if total_opiniones % opiniones_por_pagina > 0 else 0)
 
-st.write(f"### Opiniones sobre {selected_hotel}: (Página {st.session_state.pagina_actual} de {total_paginas})")
 # Inicializar sesión de Streamlit para la página actual
 if "pagina_actual" not in st.session_state:
     st.session_state.pagina_actual = 1
+
+st.write(f"### Opiniones sobre {selected_hotel}: (Página {st.session_state.pagina_actual} de {total_paginas})")
 
 # Botones de navegación
 col1, col2 = st.columns([1, 1])
