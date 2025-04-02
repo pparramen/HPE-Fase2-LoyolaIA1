@@ -153,7 +153,6 @@ def app(change_page_func):
         st.error("Por favor, seleccione fechas pertenecientes a 2025.")
     else:
         # Opción para elegir si se calcula para el último año o los últimos 5 años
-        #opcion = st.radio("Calcular precio medio basado en", options=["Último año", "Últimos 5 años"])
         # Inicializar si no está en sesión
         if "precio_modo" not in st.session_state:
             st.session_state.precio_modo = "Último año"
@@ -212,7 +211,7 @@ def app(change_page_func):
         
         st.markdown("### Precio promedio por noche")
 
-        # Crear tabla en HTML con estilos
+        #Tabla de fechas y precios
         tabla_html = """
         <style>
             .custom-table {
@@ -276,10 +275,9 @@ def app(change_page_func):
             st.markdown("<div style='height:15px'></div>", unsafe_allow_html=True) #Espacio entre botones
             st.write("### Tasa de ocupación esperada para tus fechas")
             sns.set_theme(style="whitegrid")
-
             fig, ax = plt.subplots(figsize=(10, 5))
 
-            # Línea con estilo personalizado
+            
             sns.lineplot(
                 x=pred_range.index,
                 y=pred_range.values,
@@ -289,25 +287,15 @@ def app(change_page_func):
                 color="#388e3c",
                 ax=ax
             )
-
-            # Ejes con etiquetas más limpias
+            
             ax.set_xlabel("Fecha", fontsize=13)
             ax.set_ylabel("Tasa de Ocupación (%)", fontsize=13)
-
-            # Etiquetas de fechas más legibles
             ax.set_xticks(pred_range.index)
             ax.xaxis.set_major_formatter(mdates.DateFormatter('%d %b'))
             fig.autofmt_xdate(rotation=45)
-
-            # Eje Y con pasos ajustados
             ax.yaxis.set_major_locator(ticker.MaxNLocator(integer=True))
-
-            # Líneas guía suaves
             ax.grid(True, which='major', linestyle='--', linewidth=0.5, alpha=0.7)
-
-            # Bordes sutiles
             sns.despine(top=True, right=True)
-
             plt.tight_layout()
             st.pyplot(fig)
 
