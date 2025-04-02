@@ -48,10 +48,27 @@ if st.session_state.page == "home":
         st.session_state.reset_rutas = True
         change_page("rutas")
 
+    if st.button("🏨 Ir a Recomendador de Hoteles"):
+        st.session_state.reset_hoteles = True
+        change_page("hoteles")
+    
+
+    if st.button("📜 Ir a Opiniones"):
+        st.session_state.reset_opiniones = True
+        change_page("opiniones")
+
 elif st.session_state.page == "rutas":
     from Recomendador_rutas import app
     app(change_page)
 
 elif st.session_state.page == "transporte":
     from Recomendador_transporte import app
+    app(change_page)
+
+elif st.session_state.page == "hoteles":
+    from hoteles import app
+    app(change_page)
+
+elif st.session_state.page == "opiniones":
+    from booking import app
     app(change_page)
