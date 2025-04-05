@@ -57,6 +57,11 @@ if st.session_state.page == "home":
         st.session_state.reset_opiniones = True
         change_page("opiniones")
 
+    if st.button("🌱 Ir a Informe de Sostenibilidad"):
+        st.session_state.reset_sostenibilidad = True
+        change_page("sostenibilidad")
+
+
 elif st.session_state.page == "rutas":
     from Recomendador_rutas import app
     app(change_page)
@@ -71,4 +76,8 @@ elif st.session_state.page == "hoteles":
 
 elif st.session_state.page == "opiniones":
     from booking import app
+    app(change_page)
+
+elif st.session_state.page == "sostenibilidad":
+    from sostenibilidad import app
     app(change_page)
