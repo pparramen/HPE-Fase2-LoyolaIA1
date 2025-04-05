@@ -51,11 +51,14 @@ if st.session_state.page == "home":
     if st.button("🏨 Ir a Recomendador de Hoteles"):
         st.session_state.reset_hoteles = True
         change_page("hoteles")
-    
 
     if st.button("📜 Ir a Opiniones"):
         st.session_state.reset_opiniones = True
         change_page("opiniones")
+
+    if st.button("🌱 Ir a Visualización de Sostenibilidad"):
+        st.session_state.reset_sostenibilidad = True
+        change_page("sostenibilidad")
 
 elif st.session_state.page == "rutas":
     from Recomendador_rutas import app
@@ -71,4 +74,8 @@ elif st.session_state.page == "hoteles":
 
 elif st.session_state.page == "opiniones":
     from booking import app
+    app(change_page)
+
+elif st.session_state.page == "sostenibilidad":
+    from Visualizacion_sostenibilidad import app
     app(change_page)
