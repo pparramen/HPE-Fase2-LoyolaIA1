@@ -106,25 +106,15 @@ def ocupacion_semanal(df, hotel, mes):
 def app(change_page_func):
     st.image("img/sostenibilidad_header.png")
     st.markdown('''
-    Este apartado permite a los hoteles de GreenLake Village conocer su impacto ambiental a 
-    través de un informe mensual. Podrán seleccionar el año y el mes, y conocer datos como el consumo de energía,
-    los residuos generados, uso de agua y porcentaje de reciclaje de su hotel durante esas fechas.
+    Conoce el impacto ambiental de tu hotel a través de un informe mensual. Podrán seleccionar el mes
+    y año, y conocer datos como el consumo de energía, los residuos generados, uso de agua y porcentaje
+    de reciclaje durante esas fechas.
 
-    Además, se les proporcionará un **score de sostenibilidad**:
-    ''')
-
-    st.latex(r'''
-    Score = 1 - \frac{Energia + Residuos + Agua + NoReciclaje}{4}
-    ''')
-
-    st.markdown('''
-    Los datos de energía, residuos y agua están ponderados por el número de reservas del hotel, y el "No Reciclaje" 
-    se refiere al porcentaje de residuos que no se reciclan. Cada variable se normaliza entre 0 y 1 teniendo en cuenta los datos de todos los hoteles y así
-    nuestro score es comparable entre los distintos hoteles.
-                
-    Para el mes seleccionado se presenta también un gráfico de barras que muestra las reservas y cancelaciones
-    que se preveen para ese mes en base al histórico, para que el hotel tenga información sobre su ocupación y
-    pueda planificar y optimizar su consumo de recursos.
+    Además, se les proporcionará un **score de sostenibilidad** en base a sus datos y los de otros hoteles,
+    penalizando un excesivo uso de recursos por huésped y un bajo porcentaje de reciclaje.
+         
+    Para el mes seleccionado se presenta un gráfico que muestra las reservas y cancelaciones
+    que se preveen para ese mes de forma pueda planificar y optimizar su consumo de recursos.
     ''')
 
     df = cargar_datos()
