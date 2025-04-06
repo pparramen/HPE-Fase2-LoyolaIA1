@@ -155,9 +155,9 @@ def app(change_page_func):
     if st.session_state.popularidad_input:
         st.subheader("3️⃣ Nivel de dificultad al que te quieres enfrentar:")
         st.markdown("Elige el nivel de dificultad que mejor se adapte a tus exigencias y condiciones:\n\n"
-                    "**Fácil**: Rutas sencillas y aptas para todos los públicos. Recorridos menores a 4 km.\n\n"
-                    "**Estándar**: Rutas con cierta dificultad, pero asequibles para la mayoría de personas. Recorridos comprendidos entre 4 y 6.5 km.\n\n"
-                    "**Extremo**: Rutas muy exigentes y solo aptas para los más aventureros. Recorridos superiores a 6.5 km.\n\n")
+                    "**Fácil**: Rutas sencillas y aptas para todos los públicos. Recorridos menores a 25 km.\n\n"
+                    "**Estándar**: Rutas con cierta dificultad, pero asequibles para la mayoría de personas. Recorridos comprendidos entre 25 y 65 km.\n\n"
+                    "**Extremo**: Rutas muy exigentes y solo aptas para los más aventureros. Recorridos superiores a 65 km.\n\n")
         
         col7, col8, col9, col10, col11 = st.columns([1, 1.8, 2, 2, 1])
         with col8:
@@ -250,11 +250,11 @@ def app(change_page_func):
                     puntuacion += pesos['Popularidad']
 
                 distancia = ruta['longitud_km']
-                if st.session_state.dificultad_input == 'fácil' and distancia < 4.0:
+                if st.session_state.dificultad_input == 'fácil' and distancia < 25.0:
                     puntuacion += pesos['Dificultad']
-                elif st.session_state.dificultad_input == 'estandar' and 4.0 <= distancia <= 6.5:
+                elif st.session_state.dificultad_input == 'estandar' and 25.0 <= distancia <= 65.0:
                     puntuacion += pesos['Dificultad']
-                elif st.session_state.dificultad_input == 'extremo' and distancia > 6.5:
+                elif st.session_state.dificultad_input == 'extremo' and distancia > 65.0:
                     puntuacion += pesos['Dificultad']
 
                 duracion = ruta['duracion_hr']
