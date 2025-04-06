@@ -104,6 +104,7 @@ def ocupacion_semanal(df, hotel, mes):
 
 # ----------- INTERFAZ PRINCIPAL ----------- #
 def app(change_page_func):
+    st.title(" Gestiona la sostenibilidad de tu hotel 🌱🛎️")
     st.image("img/sostenibilidad_header.png")
     st.markdown('''
     Conoce el impacto ambiental de tu hotel a través de un informe mensual. Podrán seleccionar el mes
