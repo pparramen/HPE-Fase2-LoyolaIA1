@@ -26,19 +26,25 @@ En **Windows**, corremos en el directorio donde hemos tu entorno virtual:
 hpe\Scripts\activate
 ```
 
-4. **Instalamos las dependencias del proyecto**
+4. **Nos desplazamos al directorio donde hemos clonado nuestro proyecto**
+
+```bash
+cd HPE-Fase2-LoyolaIA1
+```
+
+5. **Instalamos las dependencias del proyecto**
 
 ```bash
 pip install -r requirements.txt
 ```
 
-5. **Levantamos la aplicación con Streamlit**
+6. **Levantamos la aplicación con Streamlit**
 
 ```bash
 streamlit run home.py
 ```
 
-6. **Listo**
+7. **Listo**
 
 Abrimos en el buscador la URL que nos aparece en la terminal, normalmente:
 ```
