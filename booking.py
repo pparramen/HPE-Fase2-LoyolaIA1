@@ -14,7 +14,7 @@ def app(change_page_func):
     # Creamos un dataset con las opiniones agrupadas por servicio 
     conteo_servicios = opiniones['nombre_servicio'].value_counts().to_dict()
     servicios = opiniones.groupby(['nombre_servicio', 'tipo_servicio']).agg({'puntuacion': 'mean'}).reset_index()
-    servicios['num_opiniones'] = opiniones['nombre_servicio'].map(conteo_servicios)
+    servicios['num_opiniones'] = servicios['nombre_servicio'].map(conteo_servicios)
     servicios['descripcion_servicio'] = servicios.apply(
         lambda row: row['tipo_servicio'] if row['tipo_servicio'] in ['Hotel', 'Ruta'] else row['nombre_servicio'].split()[-1],
         axis=1

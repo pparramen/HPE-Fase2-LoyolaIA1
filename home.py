@@ -44,18 +44,23 @@ def change_page(page_name):
 # Enrutador
 if st.session_state.page == "home":
     st.title("🏡 Bienvenido a GreenLake Village")
-    if st.button("🌍 Ir a Recomendador de Rutas"):
+    if st.button("🌍 Recomendador de Rutas"):
         st.session_state.reset_rutas = True
         change_page("rutas")
 
-    if st.button("🏨 Ir a Recomendador de Hoteles"):
+    if st.button("🏨 Encuentra tu Hotel Ideal"):
         st.session_state.reset_hoteles = True
         change_page("hoteles")
     
 
-    if st.button("📜 Ir a Opiniones"):
+    if st.button("📜 Book'n Green (Reseñas)"):
         st.session_state.reset_opiniones = True
         change_page("opiniones")
+
+    if st.button("🌱 Informe de Sostenibilidad"):
+        st.session_state.reset_sostenibilidad = True
+        change_page("sostenibilidad")
+
 
 elif st.session_state.page == "rutas":
     from Recomendador_rutas import app
@@ -71,4 +76,8 @@ elif st.session_state.page == "hoteles":
 
 elif st.session_state.page == "opiniones":
     from booking import app
+    app(change_page)
+
+elif st.session_state.page == "sostenibilidad":
+    from sostenibilidad import app
     app(change_page)
