@@ -53,3 +53,4 @@ http://localhost:8501
 
 ## También se puede acceder al proyecto desplegado en Streamlit a través de:
 
+https://hpe-fase2-loyolaia1-rcddhurvz5a6cfzzm9g5th.streamlit.app/
