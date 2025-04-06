@@ -51,11 +51,15 @@ if st.session_state.page == "home":
     if st.button("🏨 Encuentra tu Hotel Ideal"):
         st.session_state.reset_hoteles = True
         change_page("hoteles")
-    
 
     if st.button("📜 Book'n Green (Reseñas)"):
         st.session_state.reset_opiniones = True
         change_page("opiniones")
+
+    if st.button("🌱 Ir a Visualización de Sostenibilidad"):
+        st.session_state.reset_sostenibilidad = True
+        change_page("sostenibilidadVision")
+
 
     if st.button("🌱 Informe de Sostenibilidad"):
         st.session_state.reset_sostenibilidad = True
@@ -80,4 +84,8 @@ elif st.session_state.page == "opiniones":
 
 elif st.session_state.page == "sostenibilidad":
     from sostenibilidad import app
+    app(change_page)
+    
+elif st.session_state.page == "sostenibilidadVision":
+    from Visualizacion_sostenibilidad import app
     app(change_page)
