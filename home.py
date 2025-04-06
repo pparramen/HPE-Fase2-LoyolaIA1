@@ -37,13 +37,21 @@ st.markdown("""
 if "page" not in st.session_state:
     st.session_state.page = "home"
 
-# Cambiar página
+# Función para cambiar de página
 def change_page(page_name):
     st.session_state.page = page_name
 
-# Enrutador
+
 if st.session_state.page == "home":
-    st.title("🏡 Bienvenido a GreenLake Village")
+    st.title("GreenLapp🍀")
+    #st.image("img/GreenLappLogo.png", width=400) 
+    st.markdown("### 🏡Bienvenido a GreenLake Village, explora la ciudad gracias a nuestra guía.🌏🌲")
+
+    st.markdown("---")  
+
+    # Sección: Usuarios Turistas
+    st.markdown("## 👥 Usuarios Turistas")
+
     if st.button("🌍 Recomendador de Rutas"):
         st.session_state.reset_rutas = True
         change_page("rutas")
@@ -56,12 +64,16 @@ if st.session_state.page == "home":
         st.session_state.reset_opiniones = True
         change_page("opiniones")
 
-    if st.button("🌱 Ir a Visualización de Sostenibilidad"):
+    st.markdown("---")
+
+    # Sección: Usuarios Gestores de Hotel
+    st.markdown("## 🏢 Usuarios Gestores de Hotel")
+
+    if st.button("🌱 Visualización de Sostenibilidad"):
         st.session_state.reset_sostenibilidad = True
         change_page("sostenibilidadVision")
 
-
-    if st.button("🌱 Informe de Sostenibilidad"):
+    if st.button("📊 Informe de Sostenibilidad"):
         st.session_state.reset_sostenibilidad = True
         change_page("sostenibilidad")
 
@@ -85,7 +97,7 @@ elif st.session_state.page == "opiniones":
 elif st.session_state.page == "sostenibilidad":
     from sostenibilidad import app
     app(change_page)
-    
+
 elif st.session_state.page == "sostenibilidadVision":
     from Visualizacion_sostenibilidad import app
     app(change_page)
