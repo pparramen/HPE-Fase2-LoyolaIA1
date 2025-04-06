@@ -9,7 +9,6 @@ import plotly.express as px
 
 # Load datasets
 def charge(data_files):
-    
     datasets = {}
     for file in data_files:
         try:
@@ -44,13 +43,25 @@ def date_treatment(df,base_data,select_mode=True):
         modes.remove("dia_semana")
         modes.remove("mes")
         modes.remove(base_data)
-        
-        mode=st.selectbox('Información solicitada:',modes)
+        name_mapping = {
+        'consumo_energia_kwh': 'Consumo de Energía (kWh)',
+        'residuos_generados_kg': 'Residuos Generados (kg)',
+        'porcentaje_reciclaje': 'Porcentaje de Reciclaje',
+        'uso_agua_m3': 'Uso de Agua (m³)',
+        'tasa_ocupacion': 'Tasa de Ocupación',
+        'reservas_confirmadas':'Reservas Confirmadas'
+        }
+        Modes =sorted([name_mapping[name] for name in modes])
+        Mode_leg=st.selectbox('Información solicitada:',Modes)
+        # Revertir nombre amigable a nombre original
+        mode = [key for key, value in name_mapping.items() if value == Mode_leg][0]
+        #mode=st.selectbox('Información solicitada:',modes)
     else:
         mode = None
+        return df
     # Ordenar los días de la semana
     orden_dias = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
-    return df,mode,orden_dias,orden_meses
+    return df,mode,orden_dias,orden_meses,Mode_leg
 
 def seleccionar(df,base_data):
     selected_data = sorted(df[base_data].unique())
@@ -58,7 +69,7 @@ def seleccionar(df,base_data):
     selected_data.append('Todos')
     selected_anno.append('Todos')
 
-    i = st.selectbox(f"Selecciona {base_data}:", selected_data )
+    i = st.selectbox(f"Selecciona hotel:", selected_data )
     j = st.selectbox("Selecciona el año:", selected_anno )
     if i == 'Todos':
         df_filtered = df
@@ -69,24 +80,27 @@ def seleccionar(df,base_data):
 
     return df_filtered,i,j
 
-
-def mode_fecha(df_filtered,mode,i,base_data):
+def mode_fecha(df_filtered,mode,i,base_data,Mode_leg):
     # Graficar ocupación por fecha
-    st.subheader(f"{mode} por fecha - {i}")
+    st.subheader(f"{Mode_leg} por fecha - {i}")
     fig, ax = plt.subplots(figsize=(12, 6))
     sns.lineplot(data=df_filtered, x="fecha", y=mode, hue=base_data, palette="viridis", ax=ax)
-    ax.set_title(f"{mode} por Fecha", fontsize=16)
+    ax.set_title(f"{Mode_leg} por fecha", fontsize=16)
     ax.set_xlabel("Fecha", fontsize=12)
-    ax.set_ylabel(f"{mode}", fontsize=12)
+    ax.set_ylabel(f"{Mode_leg}", fontsize=12)
     ax.legend(title=f"{base_data}", loc="upper right")
     plt.xticks(rotation=45)
     st.pyplot(fig)
 
 
 
-def mode_mes(filtered_mes, mode, i, base_data):
+def mode_mes(filtered_mes, mode, i, base_data,Mode_leg):
     # Graficar la ocupación por mes
-    st.subheader(f"{mode} promedio por mes - {i}")
+    st.text(f'''Esta gráfica de barras muestra el {Mode_leg} en cada mes del año seleccionado.
+    Esta información puede ser utilizada para mejorar la eficiencia en el uso de electricidad y el consumo de agua.
+    Al analizar los patrones de consumo mensual, se pueden identificar los meses con mayor demanda y
+    aplicar estrategias para reducir el uso excesivo, optimizando así los recursos y promoviendo prácticas más sostenibles. ''')
+    st.subheader(f"{Mode_leg} promedio por mes - {i}")
     fig, ax = plt.subplots(figsize=(12, 5))
     sns.barplot(x=filtered_mes.index, y=filtered_mes.values, color='b', ax=ax)
     
@@ -96,12 +110,12 @@ def mode_mes(filtered_mes, mode, i, base_data):
     ax.legend()
     
     ax.set_xlabel("Mes")
-    ax.set_ylabel(f"{base_data} promedio")
-    ax.set_title(f"{base_data} por mes")
+    ax.set_ylabel(f"{Mode_leg} promedio")
+    ax.set_title(f"{Mode_leg} por mes")
     plt.xticks(rotation=45)
     st.pyplot(fig)
 
-def mode_mes_comparativo(df,filtered_mes, mode, i, base_data,orden_meses):
+def mode_mes_comparativo(df,filtered_mes, mode, i, base_data,orden_meses,Mode_leg):
     
     texto = '''¿Con qué otro hotel y período desea comparar'''
     st.text(texto)
@@ -110,7 +124,7 @@ def mode_mes_comparativo(df,filtered_mes, mode, i, base_data,orden_meses):
     selected_data.append('Todos')
     selected_anno.append('Todos')
 
-    I = st.selectbox(f" {base_data}:", selected_data )
+    I = st.selectbox(f"Hotel:", selected_data )
     J = st.selectbox("Año:", selected_anno )
     if I == 'Todos':
         df_filtered2 = df
@@ -121,7 +135,7 @@ def mode_mes_comparativo(df,filtered_mes, mode, i, base_data,orden_meses):
     # df_filtered,i = seleccionar( df,base_data)
     filtered_mes2 = df_filtered2.groupby("mes")[mode].mean().reindex(orden_meses)
     # Graficar la ocupación por mes
-    st.subheader(f"{mode} promedio por mes - {i}")
+    st.subheader(f"{Mode_leg} promedio por mes - {i}")
     fig, ax = plt.subplots(figsize=(12, 5))
     sns.barplot(x=filtered_mes.index, y=filtered_mes.values, color='b', ax=ax, width=0.5, align = 'center')
     sns.barplot(x=filtered_mes2.index, y=filtered_mes2.values, color='r', ax=ax, width=0.5, align= 'edge')
@@ -132,8 +146,8 @@ def mode_mes_comparativo(df,filtered_mes, mode, i, base_data,orden_meses):
     ax.axhline(mean_value, color='b', linestyle=':', label=f'Media comparativa: {mean_value:.2f}')
     ax.legend()
     ax.set_xlabel("Mes")
-    ax.set_ylabel(f"{base_data} promedio")
-    ax.set_title(f"{base_data} por mes")
+    ax.set_ylabel(f"{Mode_leg} promedio")
+    ax.set_title(f"{Mode_leg} por mes")
     plt.xticks(rotation=45)
     st.pyplot(fig)
     
@@ -141,25 +155,25 @@ def mode_mes_comparativo(df,filtered_mes, mode, i, base_data,orden_meses):
     
 
 
-def mode_mes_boxplot(df_filtered, mode):
+def mode_mes_boxplot(df_filtered, mode,Mode_leg):
     # texto = '''En esta gráfica se muestra la media de cada mes y los valores más extremos así como los que están dentro de la desviación típica'''
     # st.text(texto)
-    st.subheader(f"Distribución de {mode} por mes")
+    st.subheader(f"Distribución de {Mode_leg} por mes")
     fig, ax = plt.subplots(figsize=(12, 5))
     sns.boxplot(x="mes", y=mode, data=df_filtered, order=[
         "January", "February", "March", "April", "May", "June", 
         "July", "August", "September", "October", "November", "December"
     ], ax=ax)
     ax.set_xlabel("Mes")
-    ax.set_ylabel(f"Distribución de {mode}")
-    ax.set_title(f"Boxplot de {mode} por mes")
+    ax.set_ylabel(f"Distribución de {Mode_leg}")
+    ax.set_title(f"Boxplot de {Mode_leg} por mes")
     plt.xticks(rotation=45)
     st.pyplot(fig)
 
 
-def mode_semana(filtered_dia,mode,i,base_data):
+def mode_semana(filtered_dia,mode,i,base_data,Mode_leg):
     # Graficar la ocupación por día de la semana
-    st.subheader(f"{mode} promedio por día de la semana -{i}")
+    st.subheader(f"{Mode_leg} promedio por día de la semana -{i}")
     fig, ax = plt.subplots(figsize=(10, 5))
     # Calcular y agregar línea de media mensual
     mean_value = filtered_dia.values.mean()
@@ -167,8 +181,8 @@ def mode_semana(filtered_dia,mode,i,base_data):
     ax.legend()
     sns.lineplot(x=filtered_dia.index, y=filtered_dia.values, color='b', ax=ax)
     ax.set_xlabel("Día de la semana")
-    ax.set_ylabel(f"{base_data} promedio")
-    ax.set_title(f"{base_data} promedio por día de la semana")
+    ax.set_ylabel(f"{Mode_leg} promedio")
+    ax.set_title(f"{Mode_leg} promedio por día de la semana")
     st.pyplot(fig)
 
 
@@ -187,22 +201,24 @@ def visualizacion_sostenibilidad(change_page_func):
     Se puede ver mes a mes el gasto realizado por cada hotel.'''
     st.text(texto)
     base_data ='hotel_nombre'
-    df,mode,orden_dias,orden_meses, = date_treatment(df,base_data)
+    df,mode,orden_dias,orden_meses,Mode_leg = date_treatment(df,base_data)
     df_filtered,i,j=seleccionar(df,base_data)
     filtered_mes = df_filtered.groupby("mes")[mode].mean().reindex(orden_meses)
-    mode_mes( filtered_mes, mode, i,base_data)
+    mode_mes( filtered_mes, mode, i,base_data,Mode_leg)
     # mode_fecha(df_filtered,mode,i,base_data)
     texto= '''Para poder conocer mejor la situación del hotel se ofrecen otras posibilidades de información'''
     info_extra = st.checkbox("¿Desea información comparativa?", value=False)
     #revisar que se está llamando aquí
     if info_extra:
-        st.title("Comparación de Hoteles")
+        st.title("Comparación de períodos de hoteles")
+        st.text('''Primero se muestra la comparación puramente numérica con el total de los hoteles. Si en media de consumos se está por encima del total convendrá revisar las razones que llevan a esa diferencia, y si se está por debajo en porcentaje de reciclaje se habrá de hacer lo mismo en ese aspecto. ''')
         media_mode_A = df[[mode]].mean()
         df_A = df[df['anno']==j]#.mean()
-        media_mode_AA = df_A[[mode]].mean()
         df_i= df[df["hotel_nombre"] == i]
-        media_mode_i = df_i[[mode]].mean()
         df_iA = df_i[df_i['anno']==j]#.mean()
+        
+        media_mode_AA = df_A[[mode]].mean()
+        media_mode_i = df_i[[mode]].mean()
         media_mode_ia = df_iA[[mode]].mean()
         
         data_medias = {
@@ -212,16 +228,33 @@ def visualizacion_sostenibilidad(change_page_func):
             }
         df_medias = pd.DataFrame(data_medias)
         st.write("Media y moda del hotel y variable pedida respecto al total")
+        st
         st.table(df_medias)
-        I=mode_mes_comparativo(df,filtered_mes, mode, i, base_data,orden_meses)
+        I=mode_mes_comparativo(df,filtered_mes, mode, i, base_data,orden_meses,Mode_leg)
         
 
         if i != I:
-            st.text('''Hacer una comparativa de las reservas y tasa de ocupación en ese mismo período de los diferentes hoteles''')
-            df_hotel_e,_,_,_ = date_treatment(df_hotel,base_data,select_mode=False)
+            st.title('Diferentes hoteles')
+            df_I=df[df["hotel_nombre"] == I]
+            df_IA = df_I[df_I['anno']==j]
+            media_mode_I = df_I[[mode]].mean()
+            media_mode_Ia = df_IA[[mode]].mean()
+            data_medias = {
+                f"Métrica {mode}": ['Media', "Media anual"],
+                'Total': [media_mode_A.values[0], media_mode_AA.values[0]],
+                i: [media_mode_i.values[0], media_mode_ia.values[0]],
+                I: [media_mode_I.values[0], media_mode_Ia.values[0]]
+            }
+            df_medias = pd.DataFrame(data_medias)
+            st.write('Se añade a la tabla vista anteriormente el hotel nuevo con el que se compara, para conservar la referencia con el total')
+            st.write("Media y moda del hotel y variable pedida respecto al total")
+            st.table(df_medias)
+            st.text('''Ahora se hace una comparativa de las reservas y tasa de ocupación en ese mismo período de los hoteles seleccionados.''')
+            st.text('Puesto que son diferentes hoteles, es importante señalar que no es lo mismo comparar un hotel que haya tenido el doble de reservas que otro: sus consumos pueden aumentar, su capacidad de reciclar los residuos generados puede verse superada, etcétera.')
+            df_hotel_e = date_treatment(df_hotel,base_data,select_mode=False)
             df_hotel_1 = df_hotel_e[df_hotel_e["hotel_nombre"] == i]
             df_hotel_2 = df_hotel_e[df_hotel_e["hotel_nombre"] == I]
-
+            
             # Calcular las medias
             media_TO_1 = df_hotel_1[["tasa_ocupacion"]].mean()
             media_TO_2 = df_hotel_2[["tasa_ocupacion"]].mean()
@@ -229,7 +262,7 @@ def visualizacion_sostenibilidad(change_page_func):
             media_RC_2 = df_hotel_2[["reservas_confirmadas"]].mean()
             # Crear DataFrame para la tabla
             data_medias_com = {
-                "Métrica": ["Tasa de Ocupación", "Reservas Confirmadas"],
+                "Información de clientes": ["Tasa de Ocupación", "Reservas Confirmadas"],
                 i: [media_TO_1.values[0], media_RC_1.values[0]],
                 I: [media_TO_2.values[0], media_RC_2.values[0]],
             }
@@ -237,8 +270,7 @@ def visualizacion_sostenibilidad(change_page_func):
 
             # Crear la aplicación Streamlit
             
-            st.write('''Media de la Tasa de Ocupación y Reservas Confirmadas:
-                     conviene revisarlo para saber si las escalas de los hoteles son comparables''')
+            st.write('''Media de la Tasa de Ocupación y Reservas Confirmadas:''')
             st.table(df_medias_com)
             st.write('')
 
@@ -247,19 +279,23 @@ def visualizacion_sostenibilidad(change_page_func):
 
         # I #el hotel nuevo
         # J #el año que se está mirando
-    info_box = st.checkbox("¿Desea información en cajas?", value=False)
+    info_box = st.checkbox("¿Desea información más concreta de cada mes?", value=False)
     if info_box:
-        
-        st.text('''En esta gráfica se presenta la media y los valores de la moda en la caja y en los extremos los valores más alejados''')
-        filtered_mes = df_filtered[['mes', mode]].dropna()#.reindex(orden_meses)  
-        mode_mes_boxplot(filtered_mes,mode)
-    info_semana = st.checkbox("¿Desea información diaria de algún mes?", value=False)
-    if  info_semana:
         st.title("Consulta semanal")
+        st.text('Se muestra la media de cada día de la semana del mes concreto que se quiera consultar. Con esto se puede encontrar las tendencias semanales de cada período a lo largo del año: épocas vacacionales con clientes independientes del día de la semana, épocas caracterizadas por escapadas en fines de semana, etcétera. ')
         mes = st.selectbox('Mes que desea consultar', orden_meses)
         df_filtered1 = df_filtered[(df_filtered['mes'] == mes)]
         filtered_dia = df_filtered1.groupby("dia_semana")[mode].mean().reindex(orden_dias)
-        mode_semana(filtered_dia,mode,i,base_data)
+        mode_semana(filtered_dia,mode,i,base_data,Mode_leg)
+        st.title("Consulta estadista mensual")
+        st.text('''En esta gráfica se presentan unas cajas y unos bigotes que salen de ellas para mostrar cómo se distribuye la información con respecto a la media de los datos:
+    1.-La caja: Esta muestra la mayoría de tus datos. La línea dentro de la caja es la mediana, que es el punto medio de los datos.
+    2.-Los bigotes: Estas líneas muestran los valores más pequeños y más grandes que no son considerados extremos.
+    3.-Puntos fuera de los bigotes: Si ves puntos fuera de los bigotes, esos son valores atípicos, es decir, datos que son muy diferentes del resto.''')
+        filtered_mes = df_filtered[['mes', mode]].dropna()#.reindex(orden_meses)  
+        mode_mes_boxplot(filtered_mes,mode,Mode_leg)
+        
+        
     #Botón para volver al inicio
     st.markdown("<div style='height:5px'></div>", unsafe_allow_html=True)
     if st.button("🏠 Volver al Inicio"):
